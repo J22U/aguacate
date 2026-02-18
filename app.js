@@ -1,63 +1,64 @@
 const express = require('express');
 const path = require('path');
-const sql = require('mssql'); // Asegúrate de haber hecho: npm install mssql
+const sql = require('mssql');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Configuración de la conexión (Render usa la variable DATABASE_URL)
+// Configuración de la conexión a SQL Server
 const dbConfig = process.env.DATABASE_URL; 
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// RUTA PRINCIPAL
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Ejemplo de ruta en Node.js/Express
-
-
-app.post('/api/registrar-movimiento', async (req, res) => {
+// 1. RUTA PARA GUARDAR (POST)
+app.post('/api/movimientos', async (req, res) => {
     const { lote, monto, tipo, nota } = req.body;
     try {
-        const nuevoMovimiento = await pool.query(
-            "INSERT INTO movimientos (lote_id, monto, tipo, descripcion) VALUES ($1, $2, $3, $4) RETURNING *",
-            [lote, monto, tipo, nota]
-        );
-        res.json(nuevoMovimiento.rows[0]);
+        let pool = await sql.connect(dbConfig);
+        await pool.request()
+            .input('lote', sql.NVarChar, lote)
+            .input('monto', sql.Decimal(15, 2), monto)
+            .input('tipo', sql.NVarChar, tipo)
+            .input('nota', sql.NVarChar, nota)
+            .query('INSERT INTO movimientos (lote, monto, tipo, nota) VALUES (@lote, @monto, @tipo, @nota)');
+        
+        res.json({ success: true });
     } catch (err) {
+        console.error("Error al guardar:", err);
         res.status(500).send("Error en el servidor");
     }
 });
 
-// RUTA PARA OBTENER EL RESUMEN DEL DASHBOARD
-app.get('/api/resumen-cultivo', async (req, res) => {
+// 2. RUTA PARA EL RESUMEN (GET)
+app.get('/api/resumen', async (req, res) => {
     try {
         let pool = await sql.connect(dbConfig);
-        
-        // Consultamos la suma de gastos y ventas directamente en SQL
         const result = await pool.request().query(`
             SELECT 
                 SUM(CASE WHEN tipo IN ('gasto_insumo', 'gasto_jornal') THEN monto ELSE 0 END) as inversion,
-                SUM(CASE WHEN tipo = 'venta' THEN monto ELSE 0 END) as ventas,
-                SUM(CASE WHEN tipo = 'venta' AND descripcion LIKE '%kg%' 
-                         THEN TRY_CAST(SUBSTRING(descripcion, 1, CHARINDEX('kg', descripcion)-1) AS INT) 
-                         ELSE 0 END) as kilos
+                SUM(CASE WHEN tipo = 'venta' THEN monto ELSE 0 END) as ventas
             FROM movimientos
         `);
-
         res.json(result.recordset[0]);
     } catch (err) {
+        console.error("Error en resumen:", err);
         res.status(500).json({ error: 'Error al calcular resumen' });
     }
 });
 
+// 3. RUTA PARA EL HISTORIAL (GET)
 app.get('/api/historial', async (req, res) => {
     try {
         let pool = await sql.connect(dbConfig);
         const result = await pool.request().query('SELECT TOP 10 * FROM movimientos ORDER BY fecha DESC');
         res.json(result.recordset);
     } catch (err) {
+        console.error("Error en historial:", err);
         res.status(500).send(err.message);
     }
 });
