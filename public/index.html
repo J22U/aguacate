@@ -6,12 +6,25 @@
     <title>Finca Bella Vista - Gestión Agrícola</title>
     
     <script>
-        // EL GUARDIÁN
+        // 1. EL GUARDIÁN Y BLOQUEO DE HISTORIAL
         if (localStorage.getItem('auth_finca') !== 'true') {
-            window.location.href = '/';
+            window.location.replace('/');
         }
 
-        // LA FUNCIÓN DE CIERRE (Definida aquí para evitar el error de "not defined")
+        // Invalida el acceso hacia atrás
+        window.onload = function () {
+            if (typeof history.pushState === "function") {
+                history.pushState("jt", null, null);
+                window.onpopstate = function () {
+                    history.pushState('jt', null, null);
+                    if (localStorage.getItem('auth_finca') !== 'true') {
+                        window.location.replace('/');
+                    }
+                };
+            }
+        }
+
+        // 2. FUNCIÓN DE CIERRE
         function cerrarSesion() {
             Swal.fire({
                 title: '¿Cerrar sesión?',
@@ -25,7 +38,8 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     localStorage.removeItem('auth_finca');
-                    window.location.href = '/';
+                    // .replace elimina el Dashboard de la memoria de navegación
+                    window.location.replace('/');
                 }
             });
         }
