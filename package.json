@@ -18,6 +18,7 @@
   "homepage": "https://github.com/J22U/aguacate#readme",
   "description": "",
   "dependencies": {
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "mssql": "^12.2.0"
   }
 }
