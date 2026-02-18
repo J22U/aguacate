@@ -113,3 +113,11 @@ button {
 button:active {
     transform: scale(0.98);
 }
+
+/* Ajuste para que los inputs de SweetAlert se vean limpios */
+.swal2-input {
+    font-size: 0.9rem !important;
+    height: 2.5rem !important;
+    margin: 10px auto !important;
+    border-radius: 12px !important;
+}

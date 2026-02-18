@@ -130,20 +130,21 @@ app.get('/api/trabajadores', async (req, res) => {
     }
 });
 
-// ELIMINAR TRABAJADOR
+// RUTA PARA ELIMINAR TRABAJADOR
 app.delete('/api/trabajadores/:id', async (req, res) => {
     try {
         let pool = await connectDB();
         await pool.request()
             .input('id', sql.Int, req.params.id)
             .query('DELETE FROM trabajadores WHERE id = @id');
-        res.json({ success: true });
+        res.json({ success: true, message: 'Trabajador eliminado' });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error(err);
+        res.status(500).json({ error: 'Error al eliminar en la base de datos' });
     }
 });
 
-// EDITAR TRABAJADOR
+// RUTA PARA ACTUALIZAR TRABAJADOR
 app.put('/api/trabajadores/:id', async (req, res) => {
     const { nombre, documento, labor } = req.body;
     try {
@@ -153,11 +154,14 @@ app.put('/api/trabajadores/:id', async (req, res) => {
             .input('nombre', sql.NVarChar, nombre)
             .input('documento', sql.NVarChar, documento)
             .input('labor', sql.NVarChar, labor)
-            .query('UPDATE trabajadores SET nombre = @nombre, documento = @documento, labor_principal = @labor WHERE id = @id');
-        res.json({ success: true });
+            .query(`UPDATE trabajadores 
+                    SET nombre = @nombre, 
+                        documento = @documento, 
+                        labor_principal = @labor 
+                    WHERE id = @id`);
+        res.json({ success: true, message: 'Trabajador actualizado' });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error(err);
+        res.status(500).json({ error: 'Error al actualizar en la base de datos' });
     }
 });
-
-app.listen(port, () => console.log(`Servidor activo en puerto ${port}`));
