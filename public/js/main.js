@@ -373,3 +373,24 @@ function filtrarTabla() {
         fila.style.display = (coincideBusqueda && coincideTipo) ? "" : "none";
     });
 }
+
+// Función para limpiar los buscadores y restablecer la tabla
+function limpiarFiltros() {
+    console.log("Limpiando filtros..."); // Esto es para que veas en la consola que sí entra
+    
+    // 1. Limpiar los elementos del DOM
+    const inputBusqueda = document.getElementById('filter-busqueda');
+    const selectTipo = document.getElementById('filter-tipo');
+    const inputFecha = document.getElementById('filter-fecha');
+
+    if (inputBusqueda) inputBusqueda.value = "";
+    if (selectTipo) selectTipo.value = "";
+    if (inputFecha) inputFecha.value = "";
+
+    // 2. Ejecutar la función de filtrado para mostrar todo de nuevo
+    if (typeof filtrarTabla === "function") {
+        filtrarTabla();
+    } else {
+        console.error("La función filtrarTabla no existe.");
+    }
+}
