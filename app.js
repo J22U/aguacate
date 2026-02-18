@@ -40,22 +40,19 @@ app.get('/', (req, res) => {
 
 // 1. GUARDAR MOVIMIENTO
 app.post('/api/movimientos', async (req, res) => {
-    const { fecha, lote, monto, tipo, nota } = req.body;
-    
+    const { fecha, lote, monto, kilos, tipo, nota } = req.body; // Asegúrate de incluir 'kilos' aquí
     try {
         let pool = await connectDB();
         await pool.request()
-            .input('fecha', sql.Date, fecha) // Recibe la fecha del frontend
-            .input('lote_id', sql.Int, parseInt(lote) || 1)
-            .input('monto', sql.Decimal(18, 2), monto)
-            .input('tipo', sql.NVarChar, tipo)
-            .input('descripcion', sql.NVarChar, nota) 
-            // IMPORTANTE: Asegúrate que tu tabla tenga la columna 'fecha'
-            .query('INSERT INTO movimientos (fecha, lote_id, monto, tipo, descripcion) VALUES (@fecha, @lote_id, @monto, @tipo, @descripcion)');
-        
+            .input('fecha', fecha)
+            .input('lote', lote)
+            .input('monto', monto)
+            .input('kilos', kilos) // Y aquí
+            .input('tipo', tipo)
+            .input('nota', nota)
+            .query('INSERT INTO movimientos (fecha, lote, monto, kilos, tipo, nota) VALUES (@fecha, @lote, @monto, @kilos, @tipo, @nota)');
         res.json({ success: true });
     } catch (err) {
-        console.error(err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -66,13 +63,27 @@ app.get('/api/resumen', async (req, res) => {
         let pool = await connectDB();
         const result = await pool.request().query(`
             SELECT 
+                -- Suma solo gastos
                 SUM(CASE WHEN tipo IN ('gasto_insumo', 'gasto_jornal', 'gasto_otros') THEN monto ELSE 0 END) as inversion,
+                
+                -- Suma solo montos de ventas
                 SUM(CASE WHEN tipo = 'venta' THEN monto ELSE 0 END) as ventas,
-                SUM(ISNULL(kilos, 0)) as totalKilos -- SUMA DE KILOS
+                
+                -- SUMA SOLO KILOS DE VENTAS (Esto evita que se mezclen otros datos)
+                SUM(CASE WHEN tipo = 'venta' THEN ISNULL(kilos, 0) ELSE 0 END) as totalKilos 
             FROM movimientos
         `);
-        res.json(result.recordset[0]);
+
+        // Si la tabla está vacía, SQL devuelve NULL. Esto asegura que siempre devuelva 0.
+        const resumen = {
+            inversion: result.recordset[0].inversion || 0,
+            ventas: result.recordset[0].ventas || 0,
+            totalKilos: result.recordset[0].totalKilos || 0
+        };
+
+        res.json(resumen);
     } catch (err) {
+        console.error("Error en resumen SQL:", err);
         res.status(500).json({ error: err.message });
     }
 });
