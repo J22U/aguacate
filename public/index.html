@@ -3,11 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cultivo Aguacate - Gestión Agrícola</title>
+    <title>Finca Bella Vista - Gestión Agrícola</title>
     
     <script>
+        // EL GUARDIÁN
         if (localStorage.getItem('auth_finca') !== 'true') {
             window.location.href = '/';
+        }
+
+        // LA FUNCIÓN DE CIERRE (Definida aquí para evitar el error de "not defined")
+        function cerrarSesion() {
+            Swal.fire({
+                title: '¿Cerrar sesión?',
+                text: "Tendrás que ingresar tus credenciales nuevamente.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#166534',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, salir',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.removeItem('auth_finca');
+                    window.location.href = '/';
+                }
+            });
         }
     </script>
 
@@ -27,7 +47,7 @@
 <body class="bg-slate-50 text-slate-800">
     <header class="bg-green-900 text-white shadow-2xl sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <h1 class="text-xl font-black uppercase">Control<span class="text-lime-400 font-light italic ml-1">Aguacatero</span></h1>
+            <h1 class="text-xl font-black uppercase">Control<span class="text-lime-400 font-light italic ml-1">Aguacate</span></h1>
             
             <div class="flex items-center gap-4">
                 <div id="current-date" class="hidden md:block text-[10px] font-medium text-green-300 uppercase"></div>
@@ -159,7 +179,7 @@
                                 </tr>
                             </thead>
                             <tbody id="tabla-movimientos" class="divide-y text-sm">
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
                 </div>
