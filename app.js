@@ -12,7 +12,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // RUTA PRINCIPAL
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
 // 1. RUTA PARA GUARDAR (POST)
