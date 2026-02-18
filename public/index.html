@@ -66,16 +66,25 @@
                 <section class="bg-white p-6 rounded-[2.5rem] shadow-sm border">
                     <h2 class="text-lg font-bold mb-5 flex items-center gap-3"><span class="w-1.5 h-6 bg-amber-500 rounded-full"></span> Registrar Movimiento</h2>
                     <div class="space-y-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Fecha del Movimiento</label>
+                            <input type="date" id="mov_fecha" class="w-full p-3 rounded-xl border bg-slate-50 font-medium outline-none focus:border-amber-500">
+                        </div>
+
                         <select id="mov_lote" class="w-full p-3 rounded-xl bg-slate-50 border font-bold">
                             <option value="1">🌳 Lote Principal (Superior)</option>
                         </select>
+                        
                         <input type="number" id="mov_monto" placeholder="Monto $" class="w-full p-3 rounded-xl border focus:border-amber-500 outline-none">
+                        
                         <select id="mov_tipo" class="w-full p-3 rounded-xl border font-bold">
                             <option value="gasto_insumo">🧪 Insumos</option>
                             <option value="gasto_jornal">🧑‍🌾 Jornal</option>
                             <option value="venta">🥑 Venta (+)</option>
                         </select>
+                        
                         <textarea id="mov_nota" placeholder="Descripción (Ej: Compra urea o Venta 100kg)" class="w-full p-3 rounded-xl border focus:border-amber-500 outline-none"></textarea>
+                        
                         <button onclick="registrarOperacion()" class="w-full bg-amber-500 text-white py-4 rounded-xl font-black uppercase text-xs hover:bg-amber-600 shadow-md transition-all">Registrar Operación</button>
                     </div>
                 </section>

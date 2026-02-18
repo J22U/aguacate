@@ -12,30 +12,32 @@ async function actualizarTodo() {
 }
 
 async function registrarOperacion() {
-    const lote = document.getElementById('mov_lote').value; // Esto capturará el "1"
+    const fecha = document.getElementById('mov_fecha').value; // Captura la fecha seleccionada
+    const lote = document.getElementById('mov_lote').value;
     const monto = document.getElementById('mov_monto').value;
     const tipo = document.getElementById('mov_tipo').value;
     const nota = document.getElementById('mov_nota').value;
 
+    // Validación: Si no selecciona fecha, avisar al usuario
+    if (!fecha) return Swal.fire('Error', 'Por favor selecciona una fecha', 'error');
     if (!monto || monto <= 0) return Swal.fire('Error', 'Monto inválido', 'error');
 
     try {
         const response = await fetch('/api/movimientos', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            // Enviamos lote como string, el servidor lo convertirá a Int
-            body: JSON.stringify({ lote, monto, tipo, nota }) 
+            body: JSON.stringify({ fecha, lote, monto, tipo, nota }) // Enviamos la fecha
         });
 
         if (response.ok) {
-            Swal.fire('¡Éxito!', 'Movimiento guardado', 'success');
-            // ... resto de la limpieza de campos
+            Swal.fire('¡Éxito!', 'Movimiento guardado correctamente', 'success');
+            actualizarTodo(); // Recarga el historial y dashboard
         } else {
             const error = await response.json();
-            Swal.fire('Error SQL', error.error, 'error');
+            Swal.fire('Error', error.error, 'error');
         }
     } catch (error) {
-        Swal.fire('Error', 'Fallo de conexión', 'error');
+        Swal.fire('Error', 'Fallo de conexión con el servidor', 'error');
     }
 }
 

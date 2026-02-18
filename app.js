@@ -40,20 +40,22 @@ app.get('/', (req, res) => {
 
 // 1. GUARDAR MOVIMIENTO
 app.post('/api/movimientos', async (req, res) => {
-    const { lote, monto, tipo, nota } = req.body;
+    const { fecha, lote, monto, tipo, nota } = req.body;
+    
     try {
         let pool = await connectDB();
         await pool.request()
-            // Convertimos explícitamente a número. Si no viene nada, usamos 1 por defecto.
-            .input('lote_id', sql.Int, parseInt(lote) || 1) 
+            .input('fecha', sql.Date, fecha) // Recibe la fecha del frontend
+            .input('lote_id', sql.Int, parseInt(lote) || 1)
             .input('monto', sql.Decimal(18, 2), monto)
             .input('tipo', sql.NVarChar, tipo)
             .input('descripcion', sql.NVarChar, nota) 
-            .query('INSERT INTO movimientos (lote_id, monto, tipo, descripcion) VALUES (@lote_id, @monto, @tipo, @descripcion)');
+            // IMPORTANTE: Asegúrate que tu tabla tenga la columna 'fecha'
+            .query('INSERT INTO movimientos (fecha, lote_id, monto, tipo, descripcion) VALUES (@fecha, @lote_id, @monto, @tipo, @descripcion)');
         
         res.json({ success: true });
     } catch (err) {
-        console.error("Error detallado:", err.message);
+        console.error(err);
         res.status(500).json({ error: err.message });
     }
 });
