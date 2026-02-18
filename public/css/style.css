@@ -1,0 +1,115 @@
+/* --- Paleta de Colores Aguacate --- */
+:root {
+    --hass-dark: #1a2e05;
+    --hass-green: #3f6212;
+    --hass-light: #a3e635;
+    --soil-brown: #78350f;
+    --bg-slate: #f8fafc;
+}
+
+/* --- Estilos Base --- */
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-slate);
+}
+
+/* --- Animaciones de Carga --- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+main {
+    animation: fadeIn 0.6s ease-out;
+}
+
+/* --- Tarjetas con Gradientes Orgánicos --- */
+.card-gradient-expenses {
+    background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
+    box-shadow: 0 10px 25px -5px rgba(153, 27, 27, 0.3);
+}
+
+.card-gradient-harvest {
+    background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+    box-shadow: 0 10px 25px -5px rgba(180, 83, 9, 0.3);
+}
+
+.card-gradient-balance {
+    background: linear-gradient(135deg, #10b981 0%, #064e3b 100%);
+    box-shadow: 0 10px 25px -5px rgba(6, 78, 59, 0.3);
+}
+
+.card-gradient-avocado {
+    background: linear-gradient(135deg, #65a30d 0%, #365314 100%);
+    box-shadow: 0 10px 25px -5px rgba(54, 83, 20, 0.3);
+}
+
+/* --- Inputs y Formas --- */
+input, select, textarea {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+input:focus, select:focus, textarea:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(163, 230, 53, 0.2);
+}
+
+/* --- Tablas Modernas --- */
+#tabla-movimientos tr {
+    transition: background-color 0.2s;
+}
+
+#tabla-movimientos tr:hover {
+    background-color: #f1f5f9;
+}
+
+/* Badge de Lote */
+.lote-badge {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 800;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+}
+
+/* --- Scroll Personalizado (Verde Aguacate) --- */
+.custom-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+    background: var(--hass-green);
+    border-radius: 10px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--hass-light);
+}
+
+/* --- Modales --- */
+.swal2-popup {
+    border-radius: 2rem !important;
+    padding: 2rem !important;
+}
+
+.swal2-styled.swal2-confirm {
+    background-color: var(--hass-green) !important;
+    border-radius: 1rem !important;
+    padding: 1rem 2rem !important;
+}
+
+/* --- Efectos de los Botones --- */
+button {
+    position: relative;
+    overflow: hidden;
+}
+
+button:active {
+    transform: scale(0.98);
+}
