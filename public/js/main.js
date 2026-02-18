@@ -355,27 +355,17 @@ async function prepararEdicion(id, nombre, documento, labor) {
 
 function filtrarTabla() {
     const busqueda = document.getElementById('filter-busqueda').value.toLowerCase();
-    const tipoFiltro = document.getElementById('filter-tipo').value; // Sin toLowerCase para comparar exacto
-    const fechaFiltro = document.getElementById('filter-fecha').value;
-    
+    const tipoFiltro = document.getElementById('filter-tipo').value; // El valor del select
     const filas = document.querySelectorAll('#tabla-movimientos tr');
 
     filas.forEach(fila => {
-        // Obtenemos el tipo directamente del atributo que pusimos antes
-        const tipoFila = fila.getAttribute('data-tipo') || ""; 
         const textoFila = fila.innerText.toLowerCase();
-        
-        const coincideBusqueda = textoFila.includes(busqueda);
-        // Comparación exacta de tipo (gasto_otros === gasto_otros)
-        const coincideTipo = tipoFiltro === "" || tipoFila === tipoFiltro;
-        
-        // Filtro de fecha simple
-        const coincideFecha = !fechaFiltro || fila.getAttribute('data-fecha') === fechaFiltro;
+        const tipoFila = fila.getAttribute('data-tipo'); // Sacamos el tipo real del atributo
 
-        if (coincideBusqueda && coincideTipo && coincideFecha) {
-            fila.style.display = "";
-        } else {
-            fila.style.display = "none";
-        }
+        const coincideBusqueda = textoFila.includes(busqueda);
+        // Filtro de tipo: si el select está vacío o coincide exactamente con el tipo guardado
+        const coincideTipo = tipoFiltro === "" || tipoFila === tipoFiltro;
+
+        fila.style.display = (coincideBusqueda && coincideTipo) ? "" : "none";
     });
 }
