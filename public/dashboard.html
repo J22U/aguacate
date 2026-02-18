@@ -8,157 +8,104 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
-        
-        /* Colores Agrícolas */
-        .card-gradient-avocado { background: linear-gradient(135deg, #3f6212 0%, #166534 100%); }
-        .card-gradient-harvest { background: linear-gradient(135deg, #d97706 0%, #92400e 100%); }
         .card-gradient-expenses { background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); }
+        .card-gradient-harvest { background: linear-gradient(135deg, #d97706 0%, #92400e 100%); }
         .card-gradient-balance { background: linear-gradient(135deg, #059669 0%, #064e3b 100%); }
+        .card-gradient-avocado { background: linear-gradient(135deg, #3f6212 0%, #166534 100%); }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
-
     <header class="bg-green-900 text-white shadow-2xl sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <div class="bg-lime-500 p-2 rounded-xl shadow-lg"><i class="fas fa-seedling text-xl text-white"></i></div>
-                <h1 class="text-xl font-black tracking-tight uppercase">Control<span class="text-lime-400 font-light italic ml-1">Aguacatero</span></h1>
-            </div>
-            <div class="flex items-center gap-6">
-                <div id="current-date" class="hidden md:block text-[10px] font-medium text-green-300 uppercase tracking-widest border-r border-green-700 pr-6">Temporada 2026</div>
-                <button onclick="cerrarSesion()" class="flex items-center gap-2 hover:text-red-400 transition-colors group">
-                    <span class="text-[10px] font-black uppercase tracking-widest hidden sm:block">Cerrar Finca</span>
-                    <i class="fas fa-power-off text-green-500 group-hover:text-red-400 transition-colors"></i>
-                </button>
-            </div>
+            <h1 class="text-xl font-black uppercase">Control<span class="text-lime-400 font-light italic ml-1">Aguacatero</span></h1>
+            <div id="current-date" class="text-[10px] font-medium text-green-300 uppercase"></div>
         </div>
     </header>
 
     <main class="container mx-auto px-4 py-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-            <div class="card-gradient-expenses p-6 rounded-[2rem] text-white shadow-xl transform transition hover:scale-[1.02]">
-                <div class="flex justify-between items-start">
-                    <div><p class="text-red-100/80 text-xs font-bold uppercase tracking-widest">Inversión (Insumos/Jornales)</p><h3 class="text-3xl font-black mt-2" id="dash-gastos">$ 0</h3></div>
-                    <div class="bg-white/20 p-3 rounded-2xl"><i class="fas fa-shopping-cart"></i></div>
-                </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10 text-white">
+            <div class="card-gradient-expenses p-6 rounded-[2rem] shadow-xl">
+                <p class="text-xs font-bold uppercase opacity-80">Inversión</p>
+                <h3 class="text-3xl font-black mt-2" id="dash-gastos">$ 0</h3>
             </div>
-            <div class="card-gradient-harvest p-6 rounded-[2rem] text-white shadow-xl transform transition hover:scale-[1.02]">
-                <div class="flex justify-between items-start">
-                    <div><p class="text-amber-100/80 text-xs font-bold uppercase tracking-widest">Kilos Cosechados</p><h3 class="text-3xl font-black mt-2" id="dash-kilos">0 Kg</h3></div>
-                    <div class="bg-white/20 p-3 rounded-2xl"><i class="fas fa-box-open"></i></div>
-                </div>
+            <div class="card-gradient-harvest p-6 rounded-[2rem] shadow-xl">
+                <p class="text-xs font-bold uppercase opacity-80">Kilos Cosechados</p>
+                <h3 class="text-3xl font-black mt-2" id="dash-kilos">0 Kg</h3>
             </div>
-            <div class="card-gradient-balance p-6 rounded-[2rem] text-white shadow-xl transform transition hover:scale-[1.02]">
-                <div class="flex justify-between items-start">
-                    <div><p class="text-emerald-100/80 text-xs font-bold uppercase tracking-widest">Ventas Totales</p><h3 class="text-3xl font-black mt-2" id="dash-ventas">$ 0</h3></div>
-                    <div class="bg-white/20 p-3 rounded-2xl"><i class="fas fa-money-bill-trend-up"></i></div>
-                </div>
+            <div class="card-gradient-balance p-6 rounded-[2rem] shadow-xl">
+                <p class="text-xs font-bold uppercase opacity-80">Ventas Totales</p>
+                <h3 class="text-3xl font-black mt-2" id="dash-ventas">$ 0</h3>
             </div>
-            <div class="card-gradient-avocado p-6 rounded-[2rem] text-white shadow-xl transform transition hover:scale-[1.02]">
-                <div class="flex justify-between items-start">
-                    <div><p class="text-lime-100/80 text-xs font-bold uppercase tracking-widest">Utilidad Neta</p><h3 class="text-3xl font-black mt-2" id="dash-utilidad">$ 0</h3></div>
-                    <div class="bg-white/20 p-3 rounded-2xl"><i class="fas fa-hand-holding-heart"></i></div>
-                </div>
+            <div class="card-gradient-avocado p-6 rounded-[2rem] shadow-xl">
+                <p class="text-xs font-bold uppercase opacity-80">Utilidad Neta</p>
+                <h3 class="text-3xl font-black mt-2" id="dash-utilidad">$ 0</h3>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div class="lg:col-span-4 space-y-6">
-                <section class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+                <section class="bg-white p-6 rounded-[2.5rem] shadow-sm border">
                     <h2 class="text-lg font-bold mb-5 flex items-center gap-3"><span class="w-1.5 h-6 bg-lime-600 rounded-full"></span> Registrar Trabajador</h2>
                     <div class="space-y-3">
-                        <input type="text" id="t_nombre" placeholder="Nombre del trabajador" class="w-full p-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-lime-500 outline-none transition-all">
-                        <input type="text" id="t_labor" placeholder="Labor (Ej: Fumigación, Cosecha)" class="w-full p-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-lime-500 outline-none transition-all">
-                        <button onclick="guardarTrabajador()" class="w-full bg-green-900 hover:bg-lime-600 text-white font-bold py-4 rounded-2xl transition-all shadow-lg">Registrar Personal</button>
+                        <input type="text" id="t_nombre" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 border rounded-2xl focus:border-lime-500 outline-none">
+                        <input type="text" id="t_documento" placeholder="Cédula / Documento" class="w-full p-4 bg-slate-50 border rounded-2xl focus:border-lime-500 outline-none">
+                        <input type="text" id="t_labor" placeholder="Labor (Ej: Fumigación)" class="w-full p-4 bg-slate-50 border rounded-2xl focus:border-lime-500 outline-none">
+                        <button onclick="guardarTrabajador()" class="w-full bg-green-900 text-white font-bold py-4 rounded-2xl hover:bg-green-800 shadow-lg transition-all">Registrar Personal</button>
+                    </div>
+
+                    <div class="mt-6 border-t pt-4">
+                        <h3 class="text-xs font-black uppercase text-slate-400 mb-3 tracking-widest">Personal Activo</h3>
+                        <div id="lista-trabajadores" class="space-y-2 max-h-48 overflow-y-auto custom-scroll">
+                            <p class="text-xs text-slate-400 italic">Cargando personal...</p>
+                        </div>
                     </div>
                 </section>
 
-                <section class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
-                    <h2 class="text-lg font-bold mb-5 flex items-center gap-3"><span class="w-1.5 h-6 bg-amber-500 rounded-full"></span> Registro de Gastos y Ventas</h2>
+                <section class="bg-white p-6 rounded-[2.5rem] shadow-sm border">
+                    <h2 class="text-lg font-bold mb-5 flex items-center gap-3"><span class="w-1.5 h-6 bg-amber-500 rounded-full"></span> Registrar Movimiento</h2>
                     <div class="space-y-4">
-                        <div class="bg-slate-50 p-5 rounded-3xl border border-slate-100 space-y-3">
-                            <select id="mov_lote" class="w-full p-3 rounded-xl border border-slate-200 outline-none text-sm font-bold bg-white">
-                                <option value="lote1">🌳 Lote Superior</option>
-                                <option value="lote2">🌳 Lote Inferior</option>
-                                <option value="lote3">🌳 Lote Nuevo</option>
-                            </select>
-                            
-                            <input type="number" id="mov_monto" placeholder="Monto $" class="w-full p-3 rounded-xl bg-white border border-slate-200 outline-none focus:ring-2 focus:ring-amber-400">
-                            
-                            <select id="mov_tipo" class="w-full p-3 rounded-xl border border-slate-200 outline-none text-sm font-bold bg-white">
-                                <option value="gasto_insumo">🧪 Compra de Insumos</option>
-                                <option value="gasto_jornal">🧑‍🌾 Pago de Jornal</option>
-                                <option value="venta">🥑 Venta de Cosecha (+)</option>
-                            </select>
-
-                            <textarea id="mov_nota" placeholder="Descripción (Ej: 2 bultos de urea, 5 canastillas...)" class="w-full p-3 rounded-xl bg-white border border-slate-200 outline-none focus:ring-2 focus:ring-amber-400 text-sm"></textarea>
-
-                            <button onclick="registrarOperacion()" class="w-full bg-amber-500 text-white py-4 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-amber-600 transition-all shadow-md">Registrar Operación</button>
-                        </div>
+                        <select id="mov_lote" class="w-full p-3 rounded-xl bg-slate-50 border font-bold">
+                            <option value="1">🌳 Lote Superior</option>
+                            <option value="2">🌳 Lote Inferior</option>
+                        </select>
+                        <input type="number" id="mov_monto" placeholder="Monto $" class="w-full p-3 rounded-xl border">
+                        <select id="mov_tipo" class="w-full p-3 rounded-xl border font-bold">
+                            <option value="gasto_insumo">🧪 Insumos</option>
+                            <option value="gasto_jornal">🧑‍🌾 Jornal</option>
+                            <option value="venta">🥑 Venta (+)</option>
+                        </select>
+                        <textarea id="mov_nota" placeholder="Descripción (Ej: 100kg aguacate)" class="w-full p-3 rounded-xl border"></textarea>
+                        <button onclick="registrarOperacion()" class="w-full bg-amber-500 text-white py-4 rounded-xl font-black uppercase text-xs hover:bg-amber-600 shadow-md transition-all">Registrar Operación</button>
                     </div>
                 </section>
             </div>
 
             <div class="lg:col-span-8">
-                <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-                    <div class="p-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div>
-                            <h2 class="text-xl font-bold">Historial de Movimientos</h2>
-                            <p class="text-xs text-slate-400 font-medium uppercase tracking-widest mt-1">Cuentas del Cultivo</p>
-                        </div>
-                        <div class="flex items-center gap-3 w-full md:w-auto">
-                            <button onclick="exportarPDF()" class="bg-red-50 text-red-600 px-4 py-2 rounded-xl font-bold text-xs hover:bg-red-100 transition-all">
-                                <i class="fas fa-file-pdf mr-2"></i>Exportar Informe
-                            </button>
-                        </div>
+                <div class="bg-white rounded-[2.5rem] shadow-sm border overflow-hidden">
+                    <div class="p-8">
+                        <h2 class="text-xl font-bold">Historial de Movimientos</h2>
+                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Cuentas del Cultivo</p>
                     </div>
+                    
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
-                            <thead class="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
+                            <thead class="bg-slate-50 text-[10px] font-black uppercase">
                                 <tr>
                                     <th class="px-8 py-4">Fecha / Lote</th>
-                                    <th class="px-8 py-4">Concepto y Descripción</th>
+                                    <th class="px-8 py-4">Descripción</th>
                                     <th class="px-8 py-4 text-right">Valor</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabla-movimientos" class="divide-y divide-slate-50 text-sm">
-                                <tr>
-                                    <td class="px-8 py-4 font-bold text-xs">Feb 09 - Lote 1</td>
-                                    <td class="px-8 py-4"><span class="bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-[9px] font-black uppercase mr-2">Gasto</span> Pago 2 jornales poda</td>
-                                    <td class="px-8 py-4 text-right font-black text-red-600">-$ 100,000</td>
-                                </tr>
-                                <tr>
-                                    <td class="px-8 py-4 font-bold text-xs">Feb 08 - Lote 2</td>
-                                    <td class="px-8 py-4"><span class="bg-green-100 text-green-600 px-2 py-0.5 rounded-full text-[9px] font-black uppercase mr-2">Venta</span> Venta 200kg Aguacate Hass</td>
-                                    <td class="px-8 py-4 text-right font-black text-green-600">+$ 800,000</td>
-                                </tr>
-                            </tbody>
+                            <tbody id="tabla-movimientos" class="divide-y text-sm">
+                                </tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
     </main>
-
-    <script>
-        // Funciones básicas para demostración
-        function registrarOperacion() {
-            Swal.fire({
-                title: '¿Registrar operación?',
-                text: "Se actualizará el balance del cultivo",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#166534',
-                confirmButtonText: 'Sí, registrar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire('Guardado', 'La operación ha sido registrada con éxito', 'success');
-                }
-            });
-        }
-    </script>
+    <script src="js/main.js"></script>
 </body>
 </html>

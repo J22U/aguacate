@@ -4,37 +4,35 @@ const sql = require('mssql');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Configuración de la conexión a SQL Server
 const dbConfig = process.env.DATABASE_URL; 
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// RUTA PRINCIPAL
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 1. RUTA PARA GUARDAR (POST)
+// 1. GUARDAR: Usando 'descripcion' y 'lote_id' como pide tu DB
 app.post('/api/movimientos', async (req, res) => {
     const { lote, monto, tipo, nota } = req.body;
     try {
         let pool = await sql.connect(dbConfig);
         await pool.request()
-            .input('lote', sql.NVarChar, lote)
-            .input('monto', sql.Decimal(15, 2), monto)
+            .input('lote_id', sql.Int, 1) // Tu DB pide un INT para lote_id
+            .input('monto', sql.Decimal(18, 2), monto)
             .input('tipo', sql.NVarChar, tipo)
-            .input('nota', sql.NVarChar, nota)
-            .query('INSERT INTO movimientos (lote, monto, tipo, nota) VALUES (@lote, @monto, @tipo, @nota)');
+            .input('descripcion', sql.NVarChar, nota) // Aquí se mapea nota -> descripcion
+            .query('INSERT INTO movimientos (lote_id, monto, tipo, descripcion) VALUES (@lote_id, @monto, @tipo, @descripcion)');
         
         res.json({ success: true });
     } catch (err) {
-        console.error("Error al guardar:", err);
-        res.status(500).send("Error en el servidor");
+        console.error(err);
+        res.status(500).send("Error al guardar");
     }
 });
 
-// 2. RUTA PARA EL RESUMEN (GET)
+// 2. RESUMEN: Usando 'descripcion' para los kilos
 app.get('/api/resumen', async (req, res) => {
     try {
         let pool = await sql.connect(dbConfig);
@@ -46,23 +44,48 @@ app.get('/api/resumen', async (req, res) => {
         `);
         res.json(result.recordset[0]);
     } catch (err) {
-        console.error("Error en resumen:", err);
-        res.status(500).json({ error: 'Error al calcular resumen' });
+        res.status(500).json({ error: 'Error en resumen' });
     }
 });
 
-// 3. RUTA PARA EL HISTORIAL (GET)
+// 3. HISTORIAL: Traer los datos reales
 app.get('/api/historial', async (req, res) => {
     try {
         let pool = await sql.connect(dbConfig);
-        const result = await pool.request().query('SELECT TOP 10 * FROM movimientos ORDER BY fecha DESC');
+        const result = await pool.request().query('SELECT TOP 10 fecha, tipo, monto, descripcion as nota FROM movimientos ORDER BY fecha DESC');
         res.json(result.recordset);
     } catch (err) {
-        console.error("Error en historial:", err);
         res.status(500).send(err.message);
     }
 });
 
-app.listen(port, () => {
-    console.log(`Servidor del cultivo corriendo en el puerto ${port}`);
+// API: Registrar Trabajador
+app.post('/api/trabajadores', async (req, res) => {
+    const { nombre, documento, labor } = req.body;
+    try {
+        let pool = await sql.connect(dbConfig);
+        await pool.request()
+            .input('nombre', sql.NVarChar, nombre)
+            .input('documento', sql.NVarChar, documento)
+            .input('labor_principal', sql.NVarChar, labor) // Nombre exacto de tu columna
+            .query('INSERT INTO trabajadores (nombre, documento, labor_principal) VALUES (@nombre, @documento, @labor_principal)');
+        
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Error al registrar trabajador:", err);
+        res.status(500).json({ error: err.message });
+    }
 });
+
+// API: Obtener Lista de Trabajadores
+app.get('/api/trabajadores', async (req, res) => {
+    try {
+        let pool = await sql.connect(dbConfig);
+        const result = await pool.request().query('SELECT nombre, labor_principal FROM trabajadores ORDER BY nombre ASC');
+        res.json(result.recordset);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
+
+app.listen(port, () => console.log(`Corriendo en ${port}`));
