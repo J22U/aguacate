@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
 // 1. GUARDAR: Usando 'descripcion' y 'lote_id' como pide tu DB
