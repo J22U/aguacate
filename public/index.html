@@ -4,9 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cultivo Aguacate - Gestión Agrícola</title>
+    
+    <script>
+        if (localStorage.getItem('auth_finca') !== 'true') {
+            window.location.href = '/';
+        }
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <style>
         .card-gradient-expenses { background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); }
         .card-gradient-harvest { background: linear-gradient(135deg, #d97706 0%, #92400e 100%); }
@@ -15,18 +23,20 @@
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
     </style>
-    <script>
-    // Si no hay marca de sesión, fuera al login
-    if (localStorage.getItem('auth_finca') !== 'true') {
-        window.location.href = '/';
-    }
-</script>
 </head>
 <body class="bg-slate-50 text-slate-800">
     <header class="bg-green-900 text-white shadow-2xl sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <h1 class="text-xl font-black uppercase">Control<span class="text-lime-400 font-light italic ml-1">Aguacatero</span></h1>
-            <div id="current-date" class="text-[10px] font-medium text-green-300 uppercase"></div>
+            
+            <div class="flex items-center gap-4">
+                <div id="current-date" class="hidden md:block text-[10px] font-medium text-green-300 uppercase"></div>
+                
+                <button onclick="cerrarSesion()" class="bg-red-500/20 hover:bg-red-600 text-red-200 hover:text-white px-3 py-1.5 rounded-lg border border-red-500/50 transition-all text-[10px] font-bold uppercase flex items-center gap-2">
+                    <i class="fa-solid fa-power-off"></i>
+                    Salir
+                </button>
+            </div>
         </div>
     </header>
 

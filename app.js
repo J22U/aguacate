@@ -38,6 +38,12 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
+
 // Agrega esto a tu app.js después de las otras rutas API
 app.post('/api/login', (req, res) => {
     const { user, pass } = req.body;

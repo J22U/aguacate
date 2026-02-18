@@ -158,10 +158,12 @@
                 Swal.fire({
                     icon: 'success',
                     title: '¡Acceso Concedido!',
+                    text: 'Cargando panel de la finca...',
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
-                    window.location.href = '/'; // Redirige a la raíz (que carga index.html)
+                    // CAMBIO CLAVE: Redirigir a /dashboard para evitar el conflicto con la raíz
+                    window.location.href = '/dashboard'; 
                 });
             } else {
                 throw new Error(data.message);
@@ -171,7 +173,7 @@
             btn.innerHTML = 'Ingresar al Panel';
             card.classList.add('shake');
             setTimeout(() => card.classList.remove('shake'), 400);
-            Swal.fire('Error', error.message, 'error');
+            Swal.fire('Error', error.message || 'Credenciales incorrectas', 'error');
         }
     });
 </script>
