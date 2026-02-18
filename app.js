@@ -4,14 +4,32 @@ const sql = require('mssql');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// FORMA CORRECTA: Pasar el string directamente al objeto de configuración
+// Configuración usando tus variables actuales de Render
 const dbConfig = {
-    connectionString: process.env.DATABASE_URL, // Render leerá esto de tu Environment
+    server: process.env.DB_SERVER, // AguacateDB.mssql.somee.com
+    authentication: {
+        type: 'default',
+        options: {
+            userName: process.env.DB_USER, // jube05_SQLLogin_1
+            password: process.env.DB_PASS  // cbqltm7coo
+        }
+    },
     options: {
-        encrypt: true,
+        database: process.env.DB_NAME, // AguacateDB
+        encrypt: false, // Somee normalmente no usa SSL estricto, cámbialo a true si falla
         trustServerCertificate: true
     }
 };
+
+// Función para conectar (más robusta)
+async function connectDB() {
+    try {
+        return await sql.connect(dbConfig);
+    } catch (err) {
+        console.error("Error de conexión crítica:", err.message);
+        throw err;
+    }
+}
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -24,7 +42,7 @@ app.get('/', (req, res) => {
 app.post('/api/movimientos', async (req, res) => {
     const { lote, monto, tipo, nota } = req.body;
     try {
-        let pool = await sql.connect(dbConfig);
+        let pool = await connectDB();
         await pool.request()
             .input('lote_id', sql.Int, parseInt(lote) || 1) 
             .input('monto', sql.Decimal(18, 2), monto)
@@ -42,7 +60,7 @@ app.post('/api/movimientos', async (req, res) => {
 // 2. RESUMEN (Corregido con ISNULL para evitar el error de JSON)
 app.get('/api/resumen', async (req, res) => {
     try {
-        let pool = await sql.connect(dbConfig);
+        let pool = await connectDB();
         const result = await pool.request().query(`
             SELECT 
                 ISNULL(SUM(CASE WHEN tipo IN ('gasto_insumo', 'gasto_jornal') THEN monto ELSE 0 END), 0) as inversion,
@@ -60,7 +78,7 @@ app.get('/api/resumen', async (req, res) => {
 // 3. HISTORIAL (Incluye ISNULL para mayor estabilidad)
 app.get('/api/historial', async (req, res) => {
     try {
-        let pool = await sql.connect(dbConfig);
+        let pool = await connectDB();
         const result = await pool.request().query(`
             SELECT TOP 15 
                 fecha, 
@@ -84,7 +102,7 @@ app.post('/api/trabajadores', async (req, res) => {
     if (!nombre || !documento) return res.status(400).json({ error: "Datos incompletos" });
 
     try {
-        let pool = await sql.connect(dbConfig);
+        let pool = await connectDB();
         await pool.request()
             .input('nombre', sql.NVarChar, nombre)
             .input('documento', sql.NVarChar, documento)
@@ -100,7 +118,7 @@ app.post('/api/trabajadores', async (req, res) => {
 // 5. LISTA TRABAJADORES
 app.get('/api/trabajadores', async (req, res) => {
     try {
-        let pool = await sql.connect(dbConfig);
+        let pool = await connectDB();
         const result = await pool.request().query('SELECT nombre, labor_principal FROM trabajadores ORDER BY nombre ASC');
         res.json(result.recordset || []);
     } catch (err) {
