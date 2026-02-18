@@ -166,36 +166,34 @@ async function cargarTrabajadores() {
         contenedor.innerHTML = '';
 
         if (!Array.isArray(lista) || lista.length === 0) {
-            contenedor.innerHTML = '<p class="text-xs text-slate-400 italic p-2">Sin personal activo</p>';
+            contenedor.innerHTML = '<p class="text-xs text-slate-400 italic p-3">No hay personal registrado</p>';
             return;
         }
 
         lista.forEach(t => {
-            // Intentamos capturar el ID de cualquier forma que lo envíe la base de datos
-            const idReal = t.id || t.ID || t.Id; 
+            // SEGURIDAD: Intentamos capturar el ID de ambas formas por si acaso
+            const idCorrecto = t.id !== undefined ? t.id : t.ID;
             
-            // Limpiamos los textos para evitar errores con comillas en el HTML
-            const nombreLimpio = t.nombre ? t.nombre.replace(/'/g, "\\'") : 'Sin Nombre';
-            const laborLimpia = t.labor_principal ? t.labor_principal.replace(/'/g, "\\'") : 'General';
-            const docLimpio = t.documento || '';
+            // Si el ID sigue fallando, mostramos error en consola para debugear
+            if (idCorrecto === undefined) console.error("No se encontró ID en:", t);
 
             contenedor.innerHTML += `
                 <div class="group flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-transparent hover:border-lime-200 transition-all mb-2">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 bg-green-900 text-white rounded-lg flex items-center justify-center font-bold text-xs">
-                            ${nombreLimpio.charAt(0).toUpperCase()}
+                            ${(t.nombre || 'P').charAt(0).toUpperCase()}
                         </div>
                         <div>
-                            <p class="text-xs font-bold text-slate-700">${nombreLimpio}</p>
-                            <p class="text-[10px] text-slate-400 uppercase font-medium">${laborLimpia}</p>
+                            <p class="text-xs font-bold text-slate-700">${t.nombre || 'Sin nombre'}</p>
+                            <p class="text-[10px] text-slate-400 uppercase font-medium">${t.labor_principal || 'General'}</p>
                         </div>
                     </div>
                     <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onclick="prepararEdicion(${idReal}, '${nombreLimpio}', '${docLimpio}', '${laborLimpia}')" 
+                        <button onclick="prepararEdicion(${idCorrecto}, '${t.nombre}', '${t.documento}', '${t.labor_principal}')" 
                                 class="p-1.5 text-blue-500 hover:bg-blue-100 rounded-lg">
                             <i class="fa-solid fa-pen text-[10px]"></i>
                         </button>
-                        <button onclick="eliminarTrabajador(${idReal})" 
+                        <button onclick="eliminarTrabajador(${idCorrecto})" 
                                 class="p-1.5 text-red-500 hover:bg-red-100 rounded-lg">
                             <i class="fa-solid fa-trash text-[10px]"></i>
                         </button>
@@ -237,13 +235,10 @@ async function eliminarTrabajador(id) {
 
 // EDITAR (Usando SweetAlert para el formulario)
 async function prepararEdicion(id, nombre, documento, labor) {
+    const idValido = Number(id);
     // 1. Validación de seguridad inicial
     if (!id || id === 'undefined') {
-        return Swal.fire({
-            icon: 'error',
-            title: 'Error de ID',
-            text: 'No se pudo capturar el ID del trabajador. Por favor, recarga la página.'
-        });
+        Swal.fire('Error', 'ID de trabajador no válido (' + id + ')', 'error');
     }
 
     // 2. Abrir el formulario emergente con los datos actuales
