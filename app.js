@@ -66,15 +66,14 @@ app.get('/api/resumen', async (req, res) => {
         let pool = await connectDB();
         const result = await pool.request().query(`
             SELECT 
-                ISNULL(SUM(CASE WHEN tipo IN ('gasto_insumo', 'gasto_jornal') THEN monto ELSE 0 END), 0) as inversion,
-                ISNULL(SUM(CASE WHEN tipo = 'venta' THEN monto ELSE 0 END), 0) as ventas
+                SUM(CASE WHEN tipo IN ('gasto_insumo', 'gasto_jornal', 'gasto_otros') THEN monto ELSE 0 END) as inversion,
+                SUM(CASE WHEN tipo = 'venta' THEN monto ELSE 0 END) as ventas,
+                SUM(ISNULL(kilos, 0)) as totalKilos -- SUMA DE KILOS
             FROM movimientos
         `);
-        // Aseguramos que siempre devuelva un objeto, nunca null
-        res.json(result.recordset[0] || { inversion: 0, ventas: 0 });
+        res.json(result.recordset[0]);
     } catch (err) {
-        console.error("Error en resumen:", err.message);
-        res.status(500).json({ error: 'Error en la consulta de base de datos' });
+        res.status(500).json({ error: err.message });
     }
 });
 

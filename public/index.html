@@ -75,15 +75,19 @@
                             <option value="1">🌳 Lote Principal (Superior)</option>
                         </select>
                         
-                        <input type="number" id="mov_monto" placeholder="Monto $" class="w-full p-3 rounded-xl border focus:border-amber-500 outline-none">
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="number" id="mov_monto" placeholder="Monto $" class="w-full p-3 rounded-xl border focus:border-amber-500 outline-none">
+                            <input type="number" id="mov_kilos" placeholder="Kilos (Kg)" class="w-full p-3 rounded-xl border focus:border-amber-500 outline-none">
+                        </div>
                         
-                        <select id="mov_tipo" class="w-full p-3 rounded-xl border font-bold">
+                        <select id="mov_tipo" class="w-full p-3 rounded-xl border font-bold text-slate-600">
                             <option value="gasto_insumo">🧪 Insumos</option>
                             <option value="gasto_jornal">🧑‍🌾 Jornal</option>
+                            <option value="gasto_otros">💸 Otros Gastos</option> 
                             <option value="venta">🥑 Venta (+)</option>
                         </select>
                         
-                        <textarea id="mov_nota" placeholder="Descripción (Ej: Compra urea o Venta 100kg)" class="w-full p-3 rounded-xl border focus:border-amber-500 outline-none"></textarea>
+                        <textarea id="mov_nota" placeholder="Descripción (Ej: Transporte, Repuestos, etc.)" class="w-full p-3 rounded-xl border focus:border-amber-500 outline-none"></textarea>
                         
                         <button onclick="registrarOperacion()" class="w-full bg-amber-500 text-white py-4 rounded-xl font-black uppercase text-xs hover:bg-amber-600 shadow-md transition-all">Registrar Operación</button>
                     </div>
@@ -103,8 +107,9 @@
                         <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Filtrar Tipo</label>
                         <select id="filter-tipo" onchange="filtrarTabla()" class="w-full p-3 bg-slate-50 border rounded-xl outline-none text-sm font-bold text-slate-600">
                             <option value="">📂 Todos</option>
-                            <option value="insumo">🧪 Insumos</option>
-                            <option value="jornal">🧑‍🌾 Jornal</option>
+                            <option value="gasto_insumo">🧪 Insumos</option>
+                            <option value="gasto_jornal">🧑‍🌾 Jornal</option>
+                            <option value="gasto_otros">💸 Otros Gastos</option> 
                             <option value="venta">🥑 Venta</option>
                         </select>
                     </div>

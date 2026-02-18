@@ -33,14 +33,17 @@ async function cargarResumen() {
         
         const inversion = data.inversion || 0;
         const ventas = data.ventas || 0;
+        const kilos = data.totalKilos || 0; // Capturamos los kilos
         const utilidad = ventas - inversion;
 
         document.getElementById('dash-gastos').innerText = formatMoney(inversion);
         document.getElementById('dash-ventas').innerText = formatMoney(ventas);
         
+        // ACTUALIZAMOS EL CUADRO DE KILOS
+        document.getElementById('dash-kilos').innerText = `${kilos.toLocaleString()} Kg`;
+        
         const utilElement = document.getElementById('dash-utilidad');
         utilElement.innerText = formatMoney(utilidad);
-        // Si hay pérdidas, poner en rojo suave
         utilElement.style.color = utilidad < 0 ? '#ff9999' : '#ffffff';
 
     } catch (err) {
@@ -100,34 +103,68 @@ async function cargarHistorial() {
 
 // 5. REGISTRAR MOVIMIENTO
 async function registrarOperacion() {
+    // 1. CAPTURA DE VALORES
     const fecha = document.getElementById('mov_fecha').value;
     const lote = document.getElementById('mov_lote').value;
     const monto = document.getElementById('mov_monto').value;
+    const kilos = document.getElementById('mov_kilos').value || 0; 
     const tipo = document.getElementById('mov_tipo').value;
     const nota = document.getElementById('mov_nota').value;
 
+    // 2. VALIDACIÓN: CAMPOS BÁSICOS
     if (!fecha || !monto || monto <= 0) {
         return Swal.fire('Atención', 'Por favor completa fecha y monto', 'warning');
     }
 
+    // 3. VALIDACIÓN: KILOS OBLIGATORIOS EN VENTAS
+    if (tipo === 'venta' && (kilos <= 0)) {
+        return Swal.fire('Atención', 'Si es una venta, debes registrar cuántos kilos vendiste', 'info');
+    }
+
+    // 4. VALIDACIÓN: DESCRIPCIÓN OBLIGATORIA EN "OTROS GASTOS"
+    if (tipo === 'gasto_otros' && nota.trim() === "") {
+        return Swal.fire('Atención', 'Por favor describe en qué consiste el gasto extra', 'info');
+    }
+
     try {
+        // 5. ENVÍO DE DATOS AL SERVIDOR
         const response = await fetch('/api/movimientos', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fecha, lote, monto, tipo, nota })
+            body: JSON.stringify({ 
+                fecha, 
+                lote, 
+                monto, 
+                kilos, 
+                tipo, 
+                nota 
+            })
         });
 
         if (response.ok) {
-            Swal.fire('¡Éxito!', 'Movimiento guardado', 'success');
+            Swal.fire({
+                title: '¡Éxito!',
+                text: 'Movimiento guardado correctamente',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            
+            // 6. LIMPIEZA DE CAMPOS
             document.getElementById('mov_monto').value = '';
+            document.getElementById('mov_kilos').value = ''; 
             document.getElementById('mov_nota').value = '';
-            actualizarTodo();
+            
+            // 7. ACTUALIZAR DASHBOARD Y TABLA
+            actualizarTodo(); 
+
         } else {
             const error = await response.json();
-            Swal.fire('Error', error.error, 'error');
+            Swal.fire('Error', error.error || 'No se pudo guardar', 'error');
         }
     } catch (error) {
-        Swal.fire('Error', 'Fallo de conexión', 'error');
+        console.error("Error en registro:", error);
+        Swal.fire('Error', 'Fallo de conexión con el servidor', 'error');
     }
 }
 
