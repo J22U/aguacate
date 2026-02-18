@@ -369,33 +369,33 @@ async function prepararEdicion(id, nombre, documento, labor) {
 }
 
 function filtrarTabla() {
-    const busqueda = document.getElementById('filter-busqueda').value.toLowerCase();
-    const cosecha = document.getElementById('filter-cosecha').value;
+    const busqueda = document.getElementById('filter-busqueda').value.toLowerCase().trim();
+    const cosecha = document.getElementById('filter-cosecha').value; // Valor del select (ej: "1")
     const tipo = document.getElementById('filter-tipo').value;
     const filas = document.querySelectorAll('#tabla-movimientos tr');
 
-    // Variables para el recalcular el dashboard en tiempo real
+    // Variables para recalcular el dashboard en tiempo real
     let sumInversion = 0;
     let sumVentas = 0;
     let sumKilos = 0;
 
     filas.forEach(fila => {
-        // Extraemos los datos de los atributos que pusimos en cargarHistorial
-        const fLote = fila.getAttribute('data-lote') || "";
+        // Extraemos y normalizamos los datos
+        const fLote = (fila.getAttribute('data-lote') || "").toString().trim();
         const fTipo = fila.getAttribute('data-tipo') || "";
         const fMonto = parseFloat(fila.getAttribute('data-monto')) || 0;
         const fKilos = parseFloat(fila.getAttribute('data-kilos')) || 0;
         const fTexto = fila.innerText.toLowerCase();
 
-        // Lógica de filtros
+        // LÓGICA DE FILTROS (Comparación robusta)
         const coincideBusqueda = fTexto.includes(busqueda);
-        const coincideCosecha = cosecha === "" || fLote === cosecha;
+        const coincideCosecha = cosecha === "" || fLote === cosecha.toString().trim();
         const coincideTipo = tipo === "" || fTipo === tipo;
 
         if (coincideBusqueda && coincideCosecha && coincideTipo) {
             fila.style.display = '';
             
-            // Sumamos solo lo que es visible
+            // Sumamos solo lo que cumple los filtros
             if (fTipo === 'venta') {
                 sumVentas += fMonto;
                 sumKilos += fKilos;
@@ -407,18 +407,25 @@ function filtrarTabla() {
         }
     });
 
-    // ACTUALIZAMOS EL DASHBOARD CON LOS NUEVOS TOTALES FILTRADOS
+    // ACTUALIZAMOS EL DASHBOARD CON LOS TOTALES VISIBLES
     const utilidad = sumVentas - sumInversion;
     
-    document.getElementById('dash-gastos').innerText = formatMoney(sumInversion);
-    document.getElementById('dash-ventas').innerText = formatMoney(sumVentas);
-    document.getElementById('dash-kilos').innerText = `${sumKilos.toLocaleString()} Kg`;
+    // Actualización de textos en el DOM
+    if (document.getElementById('dash-gastos')) 
+        document.getElementById('dash-gastos').innerText = formatMoney(sumInversion);
+    
+    if (document.getElementById('dash-ventas')) 
+        document.getElementById('dash-ventas').innerText = formatMoney(sumVentas);
+    
+    if (document.getElementById('dash-kilos')) 
+        document.getElementById('dash-kilos').innerText = `${sumKilos.toLocaleString()} Kg`;
     
     const utilElement = document.getElementById('dash-utilidad');
-    utilElement.innerText = formatMoney(utilidad);
-    
-    // Cambiamos el color si la utilidad es negativa
-    utilElement.style.color = utilidad < 0 ? '#ff9999' : '#ffffff';
+    if (utilElement) {
+        utilElement.innerText = formatMoney(utilidad);
+        // Estilo visual según resultado
+        utilElement.style.color = utilidad < 0 ? '#ff9999' : '#ffffff';
+    }
 }
 
 // Función auxiliar para limpiar filtros
