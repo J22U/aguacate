@@ -369,33 +369,35 @@ async function prepararEdicion(id, nombre, documento, labor) {
 }
 
 function filtrarTabla() {
+    // 1. Capturamos los valores de los filtros
     const busqueda = document.getElementById('filter-busqueda').value.toLowerCase().trim();
-    const cosecha = document.getElementById('filter-cosecha').value; // Valor del select (ej: "1")
-    const tipo = document.getElementById('filter-tipo').value;
+    const cosecha = document.getElementById('filter-cosecha').value.toString().trim();
+    const tipo = document.getElementById('filter-tipo').value.toString().trim();
     const filas = document.querySelectorAll('#tabla-movimientos tr');
 
-    // Variables para recalcular el dashboard en tiempo real
+    // Variables para el resumen dinámico
     let sumInversion = 0;
     let sumVentas = 0;
     let sumKilos = 0;
 
     filas.forEach(fila => {
-        // Extraemos y normalizamos los datos
+        // 2. Extraemos datos de los atributos data-
         const fLote = (fila.getAttribute('data-lote') || "").toString().trim();
-        const fTipo = fila.getAttribute('data-tipo') || "";
+        const fTipo = (fila.getAttribute('data-tipo') || "").toString().trim();
         const fMonto = parseFloat(fila.getAttribute('data-monto')) || 0;
         const fKilos = parseFloat(fila.getAttribute('data-kilos')) || 0;
         const fTexto = fila.innerText.toLowerCase();
 
-        // LÓGICA DE FILTROS (Comparación robusta)
-        const coincideBusqueda = fTexto.includes(busqueda);
-        const coincideCosecha = cosecha === "" || fLote === cosecha.toString().trim();
+        // 3. Lógica de triple coincidencia
+        const coincideBusqueda = busqueda === "" || fTexto.includes(busqueda);
+        const coincideCosecha = cosecha === "" || fLote === cosecha;
         const coincideTipo = tipo === "" || fTipo === tipo;
 
+        // 4. Mostrar u ocultar
         if (coincideBusqueda && coincideCosecha && coincideTipo) {
             fila.style.display = '';
             
-            // Sumamos solo lo que cumple los filtros
+            // Sumamos al resumen solo lo que es visible
             if (fTipo === 'venta') {
                 sumVentas += fMonto;
                 sumKilos += fKilos;
@@ -407,10 +409,9 @@ function filtrarTabla() {
         }
     });
 
-    // ACTUALIZAMOS EL DASHBOARD CON LOS TOTALES VISIBLES
+    // 5. Actualizamos los cuadros superiores (Dashboard)
     const utilidad = sumVentas - sumInversion;
     
-    // Actualización de textos en el DOM
     if (document.getElementById('dash-gastos')) 
         document.getElementById('dash-gastos').innerText = formatMoney(sumInversion);
     
@@ -423,7 +424,6 @@ function filtrarTabla() {
     const utilElement = document.getElementById('dash-utilidad');
     if (utilElement) {
         utilElement.innerText = formatMoney(utilidad);
-        // Estilo visual según resultado
         utilElement.style.color = utilidad < 0 ? '#ff9999' : '#ffffff';
     }
 }
