@@ -1,12 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
     actualizarTodo();
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-ES', options);
+    const dateElement = document.getElementById('current-date');
+    if(dateElement) dateElement.innerText = new Date().toLocaleDateString('es-ES', options);
 });
 
 async function actualizarTodo() {
     await cargarResumen();
     await cargarHistorial();
+    await cargarTrabajadores();
 }
 
 async function registrarOperacion() {
@@ -25,7 +27,7 @@ async function registrarOperacion() {
         });
 
         if (response.ok) {
-            Swal.fire('¡Éxito!', 'Datos guardados en SQL Server', 'success');
+            Swal.fire('¡Éxito!', 'Datos guardados', 'success');
             document.getElementById('mov_monto').value = '';
             document.getElementById('mov_nota').value = '';
             actualizarTodo();
@@ -52,17 +54,17 @@ async function cargarHistorial() {
 
     movimientos.forEach(m => {
         const esVenta = m.tipo === 'venta';
-        if (esVenta) {
+        if (esVenta && m.nota) {
             const match = m.nota.match(/(\d+)\s*kg/i);
             if (match) totalKilos += parseInt(match[1]);
         }
 
         tabla.innerHTML += `
             <tr class="hover:bg-slate-50">
-                <td class="px-8 py-4 font-bold text-xs">${new Date(m.fecha).toLocaleDateString()} - Lote ${m.lote_id}</td>
+                <td class="px-8 py-4 font-bold text-xs">${new Date(m.fecha).toLocaleDateString()} - Lote ${m.lote_id || 1}</td>
                 <td class="px-8 py-4">
                     <span class="${esVenta ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} px-2 py-0.5 rounded-full text-[9px] font-black uppercase mr-2">${m.tipo}</span>
-                    ${m.nota}
+                    ${m.nota || ''}
                 </td>
                 <td class="px-8 py-4 text-right font-black ${esVenta ? 'text-green-600' : 'text-red-600'}">
                     ${esVenta ? '+' : '-'} ${formatMoney(m.monto)}
@@ -72,15 +74,12 @@ async function cargarHistorial() {
     document.getElementById('dash-kilos').innerText = `${totalKilos} Kg`;
 }
 
-function formatMoney(n) { return '$ ' + Number(n).toLocaleString('es-CO'); }
-
-// Función para enviar trabajador a SQL Server
 async function guardarTrabajador() {
     const nombre = document.getElementById('t_nombre').value;
     const documento = document.getElementById('t_documento').value;
     const labor = document.getElementById('t_labor').value;
 
-    if (!nombre || !documento) return Swal.fire('Atención', 'Nombre y Documento son obligatorios', 'warning');
+    if (!nombre || !documento) return Swal.fire('Atención', 'Nombre y Documento requeridos', 'warning');
 
     try {
         const response = await fetch('/api/trabajadores', {
@@ -90,33 +89,27 @@ async function guardarTrabajador() {
         });
 
         if (response.ok) {
-            Swal.fire('¡Contratado!', `${nombre} ha sido registrado en la base de datos`, 'success');
-            // Limpiar campos
+            Swal.fire('¡Éxito!', 'Trabajador registrado', 'success');
             document.getElementById('t_nombre').value = '';
             document.getElementById('t_documento').value = '';
             document.getElementById('t_labor').value = '';
+            await cargarTrabajadores();
         }
     } catch (error) {
-        Swal.fire('Error', 'No se pudo guardar el trabajador', 'error');
+        Swal.fire('Error', 'No se pudo guardar', 'error');
     }
 }
 
-// 1. Modifica la función actualizarTodo para que incluya los trabajadores
-async function actualizarTodo() {
-    await cargarResumen();
-    await cargarHistorial();
-    await cargarTrabajadores(); // <-- Nueva función
-}
-
-// 2. Crea la función para dibujar la lista
 async function cargarTrabajadores() {
+    const contenedor = document.getElementById('lista-trabajadores');
+    if(!contenedor) return;
+
     try {
         const res = await fetch('/api/trabajadores');
         const trabajadores = await res.json();
-        const contenedor = document.getElementById('lista-trabajadores');
         
         if (trabajadores.length === 0) {
-            contenedor.innerHTML = '<p class="text-xs text-slate-400 italic">No hay personal registrado</p>';
+            contenedor.innerHTML = '<p class="text-xs text-slate-400 italic">No hay personal</p>';
             return;
         }
 
@@ -129,7 +122,7 @@ async function cargarTrabajadores() {
                 <i class="fas fa-check-circle text-lime-500 text-xs"></i>
             </div>
         `).join('');
-    } catch (err) {
-        console.error("Error al cargar trabajadores", err);
-    }
+    } catch (err) { console.error(err); }
 }
+
+function formatMoney(n) { return '$ ' + Number(n).toLocaleString('es-CO'); }
