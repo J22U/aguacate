@@ -61,19 +61,27 @@ app.get('/api/historial', async (req, res) => {
 
 // API: Registrar Trabajador
 app.post('/api/trabajadores', async (req, res) => {
+    // Extraemos los datos del cuerpo de la solicitud
     const { nombre, documento, labor } = req.body;
+
+    // Validación: El documento es clave en tu tabla
+    if (!nombre || !documento) {
+        return res.status(400).json({ error: "Nombre y Documento son requeridos" });
+    }
+
     try {
         let pool = await sql.connect(dbConfig);
         await pool.request()
             .input('nombre', sql.NVarChar, nombre)
             .input('documento', sql.NVarChar, documento)
-            .input('labor_principal', sql.NVarChar, labor) // Nombre exacto de tu columna
+            .input('labor_principal', sql.NVarChar, labor || 'General') // Nombre exacto de tu columna
             .query('INSERT INTO trabajadores (nombre, documento, labor_principal) VALUES (@nombre, @documento, @labor_principal)');
         
         res.json({ success: true });
     } catch (err) {
-        console.error("Error al registrar trabajador:", err);
-        res.status(500).json({ error: err.message });
+        // Esto imprimirá el error real en los logs de Render para que lo veas
+        console.error("ERROR SQL AL GUARDAR TRABAJADOR:", err.message);
+        res.status(500).json({ error: "Error en el servidor: " + err.message });
     }
 });
 
