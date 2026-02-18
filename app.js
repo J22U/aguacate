@@ -200,3 +200,24 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor funcionando en puerto ${PORT}`);
 });
+
+function cerrarSesion() {
+    Swal.fire({
+        title: '¿Cerrar sesión?',
+        text: "Tendrás que ingresar tus credenciales nuevamente.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#166534', // Verde oscuro como tu marca
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, salir',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // 1. Borramos la llave de acceso del navegador
+            localStorage.removeItem('auth_finca');
+            
+            // 2. Redirigimos a la raíz (donde el servidor cargará el login)
+            window.location.href = '/';
+        }
+    });
+}
