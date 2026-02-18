@@ -4,7 +4,14 @@ const sql = require('mssql');
 const app = express();
 const port = process.env.PORT || 3000;
 
-const dbConfig = process.env.DATABASE_URL; 
+// Configuración avanzada para SQL Server
+const dbConfig = {
+    connectionString: process.env.DATABASE_URL,
+    options: {
+        encrypt: true, // Necesario para Azure/Render
+        trustServerCertificate: true // Evita errores de handshake SSL
+    }
+};
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -19,7 +26,7 @@ app.post('/api/movimientos', async (req, res) => {
     try {
         let pool = await sql.connect(dbConfig);
         await pool.request()
-            .input('lote_id', sql.Int, parseInt(lote)) 
+            .input('lote_id', sql.Int, parseInt(lote) || 1) 
             .input('monto', sql.Decimal(18, 2), monto)
             .input('tipo', sql.NVarChar, tipo)
             .input('descripcion', sql.NVarChar, nota) 
@@ -27,35 +34,47 @@ app.post('/api/movimientos', async (req, res) => {
         
         res.json({ success: true });
     } catch (err) {
-        console.error(err);
+        console.error("Error al guardar movimiento:", err.message);
         res.status(500).json({ error: err.message });
     }
 });
 
-// 2. RESUMEN
+// 2. RESUMEN (Corregido con ISNULL para evitar el error de JSON)
 app.get('/api/resumen', async (req, res) => {
     try {
         let pool = await sql.connect(dbConfig);
         const result = await pool.request().query(`
             SELECT 
-                SUM(CASE WHEN tipo IN ('gasto_insumo', 'gasto_jornal') THEN monto ELSE 0 END) as inversion,
-                SUM(CASE WHEN tipo = 'venta' THEN monto ELSE 0 END) as ventas
+                ISNULL(SUM(CASE WHEN tipo IN ('gasto_insumo', 'gasto_jornal') THEN monto ELSE 0 END), 0) as inversion,
+                ISNULL(SUM(CASE WHEN tipo = 'venta' THEN monto ELSE 0 END), 0) as ventas
             FROM movimientos
         `);
-        res.json(result.recordset[0]);
+        // Aseguramos que siempre devuelva un objeto, nunca null
+        res.json(result.recordset[0] || { inversion: 0, ventas: 0 });
     } catch (err) {
-        res.status(500).json({ error: 'Error en resumen' });
+        console.error("Error en resumen:", err.message);
+        res.status(500).json({ error: 'Error en la consulta de base de datos' });
     }
 });
 
-// 3. HISTORIAL (Corregido para traer lote_id)
+// 3. HISTORIAL (Incluye ISNULL para mayor estabilidad)
 app.get('/api/historial', async (req, res) => {
     try {
         let pool = await sql.connect(dbConfig);
-        const result = await pool.request().query('SELECT TOP 15 fecha, tipo, monto, descripcion as nota, lote_id FROM movimientos ORDER BY fecha DESC');
-        res.json(result.recordset);
+        const result = await pool.request().query(`
+            SELECT TOP 15 
+                fecha, 
+                tipo, 
+                ISNULL(monto, 0) as monto, 
+                ISNULL(descripcion, '') as nota, 
+                ISNULL(lote_id, 1) as lote_id 
+            FROM movimientos 
+            ORDER BY fecha DESC
+        `);
+        res.json(result.recordset || []);
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error("Error en historial:", err.message);
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -73,6 +92,7 @@ app.post('/api/trabajadores', async (req, res) => {
             .query('INSERT INTO trabajadores (nombre, documento, labor_principal) VALUES (@nombre, @documento, @labor_principal)');
         res.json({ success: true });
     } catch (err) {
+        console.error("Error al registrar trabajador:", err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -82,9 +102,10 @@ app.get('/api/trabajadores', async (req, res) => {
     try {
         let pool = await sql.connect(dbConfig);
         const result = await pool.request().query('SELECT nombre, labor_principal FROM trabajadores ORDER BY nombre ASC');
-        res.json(result.recordset);
+        res.json(result.recordset || []);
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error("Error al cargar lista:", err.message);
+        res.status(500).json({ error: err.message });
     }
 });
 
