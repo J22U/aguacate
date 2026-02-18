@@ -315,3 +315,44 @@ async function prepararEdicion(id, nombre, documento, labor) {
         }
     }
 }
+
+function filtrarTabla() {
+    const busqueda = document.getElementById('filter-busqueda').value.toLowerCase();
+    const tipo = document.getElementById('filter-tipo').value.toLowerCase();
+    const fecha = document.getElementById('filter-fecha').value;
+    
+    const filas = document.querySelectorAll('#tabla-movimientos tr');
+
+    filas.forEach(fila => {
+        // Obtenemos el texto de cada columna
+        const textoFila = fila.innerText.toLowerCase();
+        const colFecha = fila.cells[0].innerText; // Contiene la fecha
+        const colNota = fila.cells[1].innerText.toLowerCase(); // Contiene tipo y nota
+        
+        // Lógica de coincidencia
+        const coincideBusqueda = textoFila.includes(busqueda);
+        const coincideTipo = tipo === "" || colNota.includes(tipo);
+        
+        // Formatear fecha de la tabla para comparar (asumiendo DD/MM/AAAA)
+        let coincideFecha = true;
+        if (fecha) {
+            const [y, m, d] = fecha.split('-');
+            const fechaFormateada = `${parseInt(d)}/${parseInt(m)}/${y}`;
+            coincideFecha = colFecha.includes(fechaFormateada);
+        }
+
+        // Mostrar u ocultar
+        if (coincideBusqueda && coincideTipo && coincideFecha) {
+            fila.style.display = "";
+        } else {
+            fila.style.display = "none";
+        }
+    });
+}
+
+function limpiarFiltros() {
+    document.getElementById('filter-busqueda').value = "";
+    document.getElementById('filter-tipo').value = "";
+    document.getElementById('filter-fecha').value = "";
+    filtrarTabla();
+}
