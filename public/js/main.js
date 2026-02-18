@@ -46,6 +46,11 @@ async function cargarResumen() {
         utilElement.innerText = formatMoney(utilidad);
         utilElement.style.color = utilidad < 0 ? '#ff9999' : '#ffffff';
 
+        // Sincronizar con filtros si ya hay uno seleccionado
+        if (document.getElementById('filter-cosecha').value !== "") {
+            filtrarTabla();
+        }
+
     } catch (err) {
         console.error("Error cargando resumen:", err);
     }
@@ -75,12 +80,16 @@ async function cargarHistorial() {
             const colorMonto = esVenta ? 'text-green-600' : 'text-red-600';
             const simbolo = esVenta ? '+' : '-';
 
-            // AGREGAMOS data-tipo="${m.tipo}" PARA QUE EL FILTRO FUNCIONE
+            // AGREGAMOS data-tipo, data-lote, data-monto y data-kilos PARA QUE EL FILTRO FUNCIONE
             tabla.innerHTML += `
-                <tr data-tipo="${m.tipo}" class="hover:bg-slate-50 transition-colors border-b border-slate-100">
+                <tr data-tipo="${m.tipo}" 
+                    data-lote="${m.lote_id || ''}" 
+                    data-monto="${m.monto}" 
+                    data-kilos="${m.kilos || 0}" 
+                    class="hover:bg-slate-50 transition-colors border-b border-slate-100">
                     <td class="px-8 py-4">
                         <p class="font-bold text-slate-700">${fechaFormateada}</p>
-                        <p class="text-[10px] text-slate-400 uppercase font-black">Lote ${m.lote_id || 1}</p>
+                        <p class="text-[10px] text-slate-400 uppercase font-black">${m.lote_id || 'General'}</p>
                     </td>
                     <td class="px-8 py-4">
                         <span class="${esVenta ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} px-2 py-0.5 rounded-full text-[9px] font-black uppercase mr-2">
@@ -95,9 +104,12 @@ async function cargarHistorial() {
                 </tr>`;
         });
 
-        // Actualizamos el dashboard con la suma real
+        // Actualizamos el dashboard con la suma inicial
         const dashKilos = document.getElementById('dash-kilos');
         if(dashKilos) dashKilos.innerText = `${totalKilos.toLocaleString()} Kg`;
+
+        // Si hay filtros puestos, reaplicarlos tras la carga
+        filtrarTabla();
 
     } catch (err) {
         console.error("Error cargando historial:", err);
@@ -357,65 +369,64 @@ async function prepararEdicion(id, nombre, documento, labor) {
 }
 
 function filtrarTabla() {
-    // 1. Obtenemos los valores de todos los filtros
-    const busqueda = document.getElementById('filter-busqueda').value.toLowerCase().trim();
-    const tipoFiltro = document.getElementById('filter-tipo').value;
-    const cosechaFiltro = document.getElementById('filter-cosecha').value;
-    const fechaFiltro = document.getElementById('filter-fecha').value;
-    
+    const busqueda = document.getElementById('filter-busqueda').value.toLowerCase();
+    const cosecha = document.getElementById('filter-cosecha').value;
+    const tipo = document.getElementById('filter-tipo').value;
     const filas = document.querySelectorAll('#tabla-movimientos tr');
 
-    // Variables para recalcular ganancias de lo que quede visible
-    let sumaIngresos = 0;
-    let sumaEgresos = 0;
-    let sumaKilos = 0;
+    // Variables para el recalcular el dashboard en tiempo real
+    let sumInversion = 0;
+    let sumVentas = 0;
+    let sumKilos = 0;
 
     filas.forEach(fila => {
-        // 2. Extraemos la información de la fila
-        const textoFila = fila.innerText.toLowerCase();
-        const tipoFila = fila.getAttribute('data-tipo') || ""; 
-        const loteFila = fila.getAttribute('data-lote') || ""; 
-        const fechaFila = fila.getAttribute('data-fecha') || "";
-        const montoFila = parseFloat(fila.getAttribute('data-monto')) || 0;
-        const kilosFila = parseFloat(fila.getAttribute('data-kilos')) || 0;
+        // Extraemos los datos de los atributos que pusimos en cargarHistorial
+        const fLote = fila.getAttribute('data-lote') || "";
+        const fTipo = fila.getAttribute('data-tipo') || "";
+        const fMonto = parseFloat(fila.getAttribute('data-monto')) || 0;
+        const fKilos = parseFloat(fila.getAttribute('data-kilos')) || 0;
+        const fTexto = fila.innerText.toLowerCase();
 
-        // 3. Lógica de coincidencias
-        const coincideBusqueda = busqueda === "" || textoFila.includes(busqueda);
-        const coincideTipo = tipoFiltro === "" || tipoFila === tipoFiltro;
-        const coincideCosecha = cosechaFiltro === "" || loteFila === cosechaFiltro;
-        const coincideFecha = fechaFiltro === "" || fechaFila === fechaFiltro;
+        // Lógica de filtros
+        const coincideBusqueda = fTexto.includes(busqueda);
+        const coincideCosecha = cosecha === "" || fLote === cosecha;
+        const coincideTipo = tipo === "" || fTipo === tipo;
 
-        // 4. Aplicar Filtro y Sumar si es visible
-        if (coincideBusqueda && coincideTipo && coincideCosecha && coincideFecha) {
-            fila.style.display = "";
+        if (coincideBusqueda && coincideCosecha && coincideTipo) {
+            fila.style.display = '';
             
-            // Sumamos a los totales del Dashboard
-            if (tipoFila === 'venta') {
-                sumaIngresos += montoFila;
-                sumaKilos += kilosFila;
-            } else if (tipoFila.startsWith('gasto_')) {
-                sumaEgresos += montoFila;
+            // Sumamos solo lo que es visible
+            if (fTipo === 'venta') {
+                sumVentas += fMonto;
+                sumKilos += fKilos;
+            } else {
+                sumInversion += fMonto;
             }
         } else {
-            fila.style.display = "none";
+            fila.style.display = 'none';
         }
     });
 
-    // 5. ACTUALIZAR EL DASHBOARD CON LOS DATOS FILTRADOS
-    const utilidad = sumaIngresos - sumaEgresos;
+    // ACTUALIZAMOS EL DASHBOARD CON LOS NUEVOS TOTALES FILTRADOS
+    const utilidad = sumVentas - sumInversion;
     
-    document.getElementById('dash-gastos').innerText = `$ ${sumaEgresos.toLocaleString()}`;
-    document.getElementById('dash-ventas').innerText = `$ ${sumaIngresos.toLocaleString()}`;
-    document.getElementById('dash-utilidad').innerText = `$ ${utilidad.toLocaleString()}`;
-    document.getElementById('dash-kilos').innerText = `${sumaKilos.toLocaleString()} Kg`;
+    document.getElementById('dash-gastos').innerText = formatMoney(sumInversion);
+    document.getElementById('dash-ventas').innerText = formatMoney(sumVentas);
+    document.getElementById('dash-kilos').innerText = `${sumKilos.toLocaleString()} Kg`;
+    
+    const utilElement = document.getElementById('dash-utilidad');
+    utilElement.innerText = formatMoney(utilidad);
+    
+    // Cambiamos el color si la utilidad es negativa
+    utilElement.style.color = utilidad < 0 ? '#ff9999' : '#ffffff';
+}
 
-    // Cambiar color de utilidad si es negativa
-    const dashUtilidad = document.getElementById('dash-utilidad');
-    if (utilidad < 0) {
-        dashUtilidad.classList.add('text-red-200');
-    } else {
-        dashUtilidad.classList.remove('text-red-200');
-    }
+// Función auxiliar para limpiar filtros
+function limpiarFiltros() {
+    document.getElementById('filter-busqueda').value = "";
+    document.getElementById('filter-cosecha').value = "";
+    document.getElementById('filter-tipo').value = "";
+    filtrarTabla();
 }
 
 // Función para limpiar los buscadores y restablecer la tabla
