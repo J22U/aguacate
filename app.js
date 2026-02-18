@@ -68,6 +68,7 @@ app.get('/api/resumen', async (req, res) => {
             SELECT 
                 SUM(CASE WHEN tipo IN ('gasto_insumo', 'gasto_jornal', 'gasto_otros') THEN ISNULL(monto, 0) ELSE 0 END) as inversion,
                 SUM(CASE WHEN tipo = 'venta' THEN ISNULL(monto, 0) ELSE 0 END) as ventas,
+                -- ESTA ES LA LÍNEA CLAVE:
                 SUM(CASE WHEN tipo = 'venta' THEN ISNULL(kilos, 0) ELSE 0 END) as totalKilos 
             FROM movimientos
         `);
@@ -91,16 +92,18 @@ app.get('/api/historial', async (req, res) => {
                 fecha, 
                 tipo, 
                 ISNULL(monto, 0) as monto, 
+                ISNULL(kilos, 0) as kilos, -- ¡IMPORTANTE! Agregamos esta columna
                 ISNULL(descripcion, '') as nota, 
                 ISNULL(lote_id, 1) as lote_id 
             FROM movimientos 
-            ORDER BY fecha DESC
+            ORDER BY fecha DESC, id DESC -- Agregamos id DESC para ver lo último que se creó
         `);
         res.json(result.recordset || []);
     } catch (err) {
         console.error("Error en historial:", err.message);
         res.status(500).json({ error: err.message });
     }
+    // AQUÍ NO VA NADA. Borramos cargarResumen();
 });
 
 // 4. REGISTRAR TRABAJADOR
