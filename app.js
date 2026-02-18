@@ -1,10 +1,14 @@
-const express = require('express'); // 1. Importas Express
-const app = express();               // 2. CREAS la variable 'app' que faltaba
-const port = process.env.PORT || 3000;
+const express = require('express');
 const path = require('path');
+const sql = require('mssql'); // Asegúrate de haber hecho: npm install mssql
+const app = express();
+const port = process.env.PORT || 3000;
 
-app.use(express.json());             // Para que el servidor entienda datos JSON
-app.use(express.static('public'));
+// Configuración de la conexión (Render usa la variable DATABASE_URL)
+const dbConfig = process.env.DATABASE_URL; 
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
