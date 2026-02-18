@@ -131,52 +131,49 @@
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const user = document.getElementById('userInput').value;
-            const pass = document.getElementById('passInput').value;
-            const btn = document.getElementById('btnLogin');
-            const card = document.getElementById('loginCard');
-            
-            // Credenciales Maestras
-            const USUARIO_CORRECTO = "admin";
-            const CLAVE_CORRECTA = "finca2026";
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const user = document.getElementById('userInput').value;
+        const pass = document.getElementById('passInput').value;
+        const btn = document.getElementById('btnLogin');
+        const card = document.getElementById('loginCard');
 
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> Validando...';
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> VALIDANDO...';
 
-            setTimeout(() => {
-                // Validación estricta
-                if (user === USUARIO_CORRECTO && pass === CLAVE_CORRECTA) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: '¡Acceso Concedido!',
-                        text: 'Entrando a Hacienda Bio...',
-                        timer: 1500,
-                        showConfirmButton: false,
-                        background: '#ffffff',
-                        color: '#14532d'
-                    }).then(() => {
-                        window.location.href = 'index.html';
-                    });
-                } else {
-                    // Si falla: Restaurar botón y sacudir tarjeta
-                    btn.disabled = false;
-                    btn.innerHTML = 'Ingresar al Panel';
-                    
-                    card.classList.add('shake');
-                    setTimeout(() => card.classList.remove('shake'), 400);
+        try {
+            const respuesta = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user, pass })
+            });
 
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Datos incorrectos',
-                        text: 'Revisa tu usuario o contraseña.',
-                        confirmButtonColor: '#65a30d'
-                    });
-                }
-            }, 800);
-        });
-    </script>
+            const data = await respuesta.json();
+
+            if (data.success) {
+                // GUARDAR SESIÓN LOCAL
+                localStorage.setItem('auth_finca', 'true');
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Acceso Concedido!',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = '/'; // Redirige a la raíz (que carga index.html)
+                });
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            btn.disabled = false;
+            btn.innerHTML = 'Ingresar al Panel';
+            card.classList.add('shake');
+            setTimeout(() => card.classList.remove('shake'), 400);
+            Swal.fire('Error', error.message, 'error');
+        }
+    });
+</script>
 </body>
 </html>

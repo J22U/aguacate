@@ -38,6 +38,20 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
+// Agrega esto a tu app.js después de las otras rutas API
+app.post('/api/login', (req, res) => {
+    const { user, pass } = req.body;
+    
+    // Credenciales maestras (Luego podrías consultarlas en la DB)
+    const USUARIO_MASTER = "admin";
+    const CLAVE_MASTER = "finca2026";
+
+    if (user === USUARIO_MASTER && pass === CLAVE_MASTER) {
+        res.json({ success: true, message: "Acceso concedido" });
+    } else {
+        res.status(401).json({ success: false, message: "Usuario o clave incorrectos" });
+    }
+});
 // 1. GUARDAR MOVIMIENTO
 // CORRECCIÓN EN EL SERVIDOR (app.js)
 app.post('/api/movimientos', async (req, res) => {
