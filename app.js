@@ -44,6 +44,7 @@ app.post('/api/movimientos', async (req, res) => {
     try {
         let pool = await connectDB();
         await pool.request()
+            // Convertimos explícitamente a número. Si no viene nada, usamos 1 por defecto.
             .input('lote_id', sql.Int, parseInt(lote) || 1) 
             .input('monto', sql.Decimal(18, 2), monto)
             .input('tipo', sql.NVarChar, tipo)
@@ -52,7 +53,7 @@ app.post('/api/movimientos', async (req, res) => {
         
         res.json({ success: true });
     } catch (err) {
-        console.error("Error al guardar movimiento:", err.message);
+        console.error("Error detallado:", err.message);
         res.status(500).json({ error: err.message });
     }
 });

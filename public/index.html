@@ -67,16 +67,15 @@
                     <h2 class="text-lg font-bold mb-5 flex items-center gap-3"><span class="w-1.5 h-6 bg-amber-500 rounded-full"></span> Registrar Movimiento</h2>
                     <div class="space-y-4">
                         <select id="mov_lote" class="w-full p-3 rounded-xl bg-slate-50 border font-bold">
-                            <option value="1">🌳 Lote Superior</option>
-                            <option value="2">🌳 Lote Inferior</option>
+                            <option value="1">🌳 Lote Principal (Superior)</option>
                         </select>
-                        <input type="number" id="mov_monto" placeholder="Monto $" class="w-full p-3 rounded-xl border">
+                        <input type="number" id="mov_monto" placeholder="Monto $" class="w-full p-3 rounded-xl border focus:border-amber-500 outline-none">
                         <select id="mov_tipo" class="w-full p-3 rounded-xl border font-bold">
                             <option value="gasto_insumo">🧪 Insumos</option>
                             <option value="gasto_jornal">🧑‍🌾 Jornal</option>
                             <option value="venta">🥑 Venta (+)</option>
                         </select>
-                        <textarea id="mov_nota" placeholder="Descripción (Ej: 100kg aguacate)" class="w-full p-3 rounded-xl border"></textarea>
+                        <textarea id="mov_nota" placeholder="Descripción (Ej: Compra urea o Venta 100kg)" class="w-full p-3 rounded-xl border focus:border-amber-500 outline-none"></textarea>
                         <button onclick="registrarOperacion()" class="w-full bg-amber-500 text-white py-4 rounded-xl font-black uppercase text-xs hover:bg-amber-600 shadow-md transition-all">Registrar Operación</button>
                     </div>
                 </section>
@@ -84,9 +83,14 @@
 
             <div class="lg:col-span-8">
                 <div class="bg-white rounded-[2.5rem] shadow-sm border overflow-hidden">
-                    <div class="p-8">
-                        <h2 class="text-xl font-bold">Historial de Movimientos</h2>
-                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Cuentas del Cultivo</p>
+                    <div class="p-8 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold">Historial de Movimientos</h2>
+                            <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Cuentas del Cultivo</p>
+                        </div>
+                        <button onclick="actualizarTodo()" class="text-green-600 hover:rotate-180 transition-all duration-500">
+                            <i class="fa-solid fa-sync"></i>
+                        </button>
                     </div>
                     
                     <div class="overflow-x-auto">

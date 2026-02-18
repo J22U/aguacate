@@ -12,7 +12,7 @@ async function actualizarTodo() {
 }
 
 async function registrarOperacion() {
-    const lote = document.getElementById('mov_lote').value;
+    const lote = document.getElementById('mov_lote').value; // Esto capturará el "1"
     const monto = document.getElementById('mov_monto').value;
     const tipo = document.getElementById('mov_tipo').value;
     const nota = document.getElementById('mov_nota').value;
@@ -23,17 +23,19 @@ async function registrarOperacion() {
         const response = await fetch('/api/movimientos', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ lote, monto, tipo, nota })
+            // Enviamos lote como string, el servidor lo convertirá a Int
+            body: JSON.stringify({ lote, monto, tipo, nota }) 
         });
 
         if (response.ok) {
-            Swal.fire('¡Éxito!', 'Datos guardados', 'success');
-            document.getElementById('mov_monto').value = '';
-            document.getElementById('mov_nota').value = '';
-            actualizarTodo();
+            Swal.fire('¡Éxito!', 'Movimiento guardado', 'success');
+            // ... resto de la limpieza de campos
+        } else {
+            const error = await response.json();
+            Swal.fire('Error SQL', error.error, 'error');
         }
     } catch (error) {
-        Swal.fire('Error', 'No se pudo conectar al servidor', 'error');
+        Swal.fire('Error', 'Fallo de conexión', 'error');
     }
 }
 
