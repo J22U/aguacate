@@ -357,34 +357,80 @@ async function prepararEdicion(id, nombre, documento, labor) {
 }
 
 function filtrarTabla() {
-    // Obtenemos valores y limpiamos espacios
+    // 1. Obtenemos los valores de todos los filtros
     const busqueda = document.getElementById('filter-busqueda').value.toLowerCase().trim();
-    const tipoFiltro = document.getElementById('filter-tipo').value; 
+    const tipoFiltro = document.getElementById('filter-tipo').value;
+    const cosechaFiltro = document.getElementById('filter-cosecha').value;
+    const fechaFiltro = document.getElementById('filter-fecha').value;
+    
     const filas = document.querySelectorAll('#tabla-movimientos tr');
 
-    filas.forEach(fila => {
-        const textoFila = fila.innerText.toLowerCase();
-        const tipoFila = fila.getAttribute('data-tipo'); 
+    // Variables para recalcular ganancias de lo que quede visible
+    let sumaIngresos = 0;
+    let sumaEgresos = 0;
+    let sumaKilos = 0;
 
+    filas.forEach(fila => {
+        // 2. Extraemos la información de la fila
+        const textoFila = fila.innerText.toLowerCase();
+        const tipoFila = fila.getAttribute('data-tipo') || ""; 
+        const loteFila = fila.getAttribute('data-lote') || ""; 
+        const fechaFila = fila.getAttribute('data-fecha') || "";
+        const montoFila = parseFloat(fila.getAttribute('data-monto')) || 0;
+        const kilosFila = parseFloat(fila.getAttribute('data-kilos')) || 0;
+
+        // 3. Lógica de coincidencias
         const coincideBusqueda = busqueda === "" || textoFila.includes(busqueda);
         const coincideTipo = tipoFiltro === "" || tipoFila === tipoFiltro;
+        const coincideCosecha = cosechaFiltro === "" || loteFila === cosechaFiltro;
+        const coincideFecha = fechaFiltro === "" || fechaFila === fechaFiltro;
 
-        // Mostrar u ocultar
-        fila.style.display = (coincideBusqueda && coincideTipo) ? "" : "none";
+        // 4. Aplicar Filtro y Sumar si es visible
+        if (coincideBusqueda && coincideTipo && coincideCosecha && coincideFecha) {
+            fila.style.display = "";
+            
+            // Sumamos a los totales del Dashboard
+            if (tipoFila === 'venta') {
+                sumaIngresos += montoFila;
+                sumaKilos += kilosFila;
+            } else if (tipoFila.startsWith('gasto_')) {
+                sumaEgresos += montoFila;
+            }
+        } else {
+            fila.style.display = "none";
+        }
     });
+
+    // 5. ACTUALIZAR EL DASHBOARD CON LOS DATOS FILTRADOS
+    const utilidad = sumaIngresos - sumaEgresos;
+    
+    document.getElementById('dash-gastos').innerText = `$ ${sumaEgresos.toLocaleString()}`;
+    document.getElementById('dash-ventas').innerText = `$ ${sumaIngresos.toLocaleString()}`;
+    document.getElementById('dash-utilidad').innerText = `$ ${utilidad.toLocaleString()}`;
+    document.getElementById('dash-kilos').innerText = `${sumaKilos.toLocaleString()} Kg`;
+
+    // Cambiar color de utilidad si es negativa
+    const dashUtilidad = document.getElementById('dash-utilidad');
+    if (utilidad < 0) {
+        dashUtilidad.classList.add('text-red-200');
+    } else {
+        dashUtilidad.classList.remove('text-red-200');
+    }
 }
 
 // Función para limpiar los buscadores y restablecer la tabla
 function limpiarFiltros() {
-    console.log("Limpiando filtros..."); // Esto es para que veas en la consola que sí entra
+    console.log("Limpiando filtros..."); 
     
-    // 1. Limpiar los elementos del DOM
+    // 1. Limpiar los elementos del DOM (Incluyendo la nueva Cosecha)
     const inputBusqueda = document.getElementById('filter-busqueda');
     const selectTipo = document.getElementById('filter-tipo');
+    const selectCosecha = document.getElementById('filter-cosecha'); // Nuevo
     const inputFecha = document.getElementById('filter-fecha');
 
     if (inputBusqueda) inputBusqueda.value = "";
     if (selectTipo) selectTipo.value = "";
+    if (selectCosecha) selectCosecha.value = ""; // Nuevo
     if (inputFecha) inputFecha.value = "";
 
     // 2. Ejecutar la función de filtrado para mostrar todo de nuevo
@@ -393,4 +439,34 @@ function limpiarFiltros() {
     } else {
         console.error("La función filtrarTabla no existe.");
     }
+}
+
+function calcularResumenFiltrado() {
+    let ingresos = 0;
+    let egresos = 0;
+
+    // Solo recorremos las filas que NO están ocultas por el filtro
+    const filasVisibles = document.querySelectorAll('#tabla-movimientos tr:not([style*="display: none"])');
+
+    filasVisibles.forEach(fila => {
+        // Extraemos el monto y el tipo (data-tipo)
+        const monto = parseFloat(fila.getAttribute('data-monto')) || 0;
+        const tipo = fila.getAttribute('data-tipo');
+
+        if (tipo === 'venta') {
+            ingresos += monto;
+        } else if (tipo.startsWith('gasto_')) {
+            egresos += monto;
+        }
+    });
+
+    const utilidad = ingresos - egresos;
+
+    // Mostramos el resultado (puedes usar un Swal o actualizar un div en el HTML)
+    console.log(`Resumen: Ingresos ${ingresos}, Gastos ${egresos}, Ganancia: ${utilidad}`);
+    
+    // Si quieres mostrarlo en el Dashboard automáticamente:
+    document.getElementById('dash-ventas').innerText = `$ ${ingresos.toLocaleString()}`;
+    document.getElementById('dash-gastos').innerText = `$ ${egresos.toLocaleString()}`;
+    document.getElementById('dash-utilidad').innerText = `$ ${utilidad.toLocaleString()}`;
 }

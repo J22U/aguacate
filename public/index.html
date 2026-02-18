@@ -11,7 +11,6 @@
             window.location.replace('/');
         }
 
-        // Invalida el acceso hacia atrás
         window.onload = function () {
             if (typeof history.pushState === "function") {
                 history.pushState("jt", null, null);
@@ -38,7 +37,6 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     localStorage.removeItem('auth_finca');
-                    // .replace elimina el Dashboard de la memoria de navegación
                     window.location.replace('/');
                 }
             });
@@ -65,10 +63,8 @@
             
             <div class="flex items-center gap-4">
                 <div id="current-date" class="hidden md:block text-[10px] font-medium text-green-300 uppercase"></div>
-                
                 <button onclick="cerrarSesion()" class="bg-red-500/20 hover:bg-red-600 text-red-200 hover:text-white px-3 py-1.5 rounded-lg border border-red-500/50 transition-all text-[10px] font-bold uppercase flex items-center gap-2">
-                    <i class="fa-solid fa-power-off"></i>
-                    Salir
+                    <i class="fa-solid fa-power-off"></i> Salir
                 </button>
             </div>
         </div>
@@ -104,7 +100,6 @@
                         <input type="text" id="t_labor" placeholder="Labor (Ej: Fumigación)" class="w-full p-4 bg-slate-50 border rounded-2xl focus:border-lime-500 outline-none">
                         <button onclick="guardarTrabajador()" class="w-full bg-green-900 text-white font-bold py-4 rounded-2xl hover:bg-green-800 shadow-lg transition-all">Registrar Personal</button>
                     </div>
-
                     <div class="mt-6 border-t pt-4">
                         <h3 class="text-xs font-black uppercase text-slate-400 mb-3 tracking-widest">Personal Activo</h3>
                         <div id="lista-trabajadores" class="space-y-2 max-h-48 overflow-y-auto custom-scroll">
@@ -121,8 +116,14 @@
                             <input type="date" id="mov_fecha" class="w-full p-3 rounded-xl border bg-slate-50 font-medium outline-none focus:border-amber-500">
                         </div>
 
-                        <select id="mov_lote" class="w-full p-3 rounded-xl bg-slate-50 border font-bold">
-                            <option value="1">🌳 Lote Principal (Superior)</option>
+                        <select id="mov_lote" class="w-full p-3 rounded-xl bg-slate-50 border font-bold text-green-800">
+                            <optgroup label="Cosechas 2026">
+                                <option value="2026-P">🥑 Cosecha Principal 2026</option>
+                                <option value="2026-T">🥑 Cosecha Traviesa 2026</option>
+                            </optgroup>
+                            <optgroup label="Cosechas Anteriores">
+                                <option value="2025-P">📦 Histórico 2025</option>
+                            </optgroup>
                         </select>
                         
                         <div class="grid grid-cols-2 gap-3">
@@ -154,6 +155,15 @@
                         </div>
                     </div>
                     <div>
+                        <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Filtrar Cosecha</label>
+                        <select id="filter-cosecha" onchange="filtrarTabla()" class="w-full p-3 bg-slate-50 border rounded-xl outline-none text-sm font-bold text-green-700">
+                            <option value="">🔎 Todas</option>
+                            <option value="2026-P">Principal 2026</option>
+                            <option value="2026-T">Traviesa 2026</option>
+                            <option value="2025-P">Histórico 2025</option>
+                        </select>
+                    </div>
+                    <div>
                         <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Filtrar Tipo</label>
                         <select id="filter-tipo" onchange="filtrarTabla()" class="w-full p-3 bg-slate-50 border rounded-xl outline-none text-sm font-bold text-slate-600">
                             <option value="">📂 Todos</option>
@@ -163,10 +173,8 @@
                             <option value="venta">🥑 Venta</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Filtrar Fecha</label>
-                        <input type="date" id="filter-fecha" onchange="filtrarTabla()" class="w-full p-3 bg-slate-50 border rounded-xl outline-none text-sm">
-                    </div>
+                    <input type="hidden" id="filter-fecha" onchange="filtrarTabla()">
+                    
                     <button onclick="limpiarFiltros()" class="mt-5 p-3 text-slate-400 hover:text-red-500 transition-colors">
                         <i class="fa-solid fa-eraser"></i>
                     </button>
@@ -193,7 +201,7 @@
                                 </tr>
                             </thead>
                             <tbody id="tabla-movimientos" class="divide-y text-sm">
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                 </div>
