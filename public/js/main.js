@@ -146,3 +146,46 @@ async function actualizarTablero() {
 // Llama a esta función al final de tu 'registrarOperacion' para que se actualice al guardar
 // Y también al cargar la página:
 document.addEventListener('DOMContentLoaded', actualizarTablero);
+
+// FUNCIÓN: Actualizar Cuadros (Dashboard)
+async function cargarResumen() {
+    const res = await fetch('/api/resumen');
+    const data = await res.json();
+    
+    const inversion = data.inversion || 0;
+    const ventas = data.ventas || 0;
+    const utilidad = ventas - inversion;
+
+    document.getElementById('dash-gastos').innerText = formatMoney(inversion);
+    document.getElementById('dash-ventas').innerText = formatMoney(ventas);
+    document.getElementById('dash-utilidad').innerText = formatMoney(utilidad);
+}
+
+// FUNCIÓN: Dibujar Tabla de Historial
+async function cargarHistorial() {
+    const res = await fetch('/api/historial');
+    const movimientos = await res.json();
+    const tabla = document.getElementById('tabla-movimientos');
+    tabla.innerHTML = '';
+
+    movimientos.forEach(m => {
+        const esVenta = m.tipo === 'venta';
+        tabla.innerHTML += `
+            <tr>
+                <td class="px-8 py-4 font-bold text-xs">${new Date(m.fecha).toLocaleDateString()} - ${m.lote}</td>
+                <td class="px-8 py-4">
+                    <span class="${esVenta ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} px-2 py-0.5 rounded-full text-[9px] font-black uppercase mr-2">
+                        ${m.tipo}
+                    </span> ${m.nota}
+                </td>
+                <td class="px-8 py-4 text-right font-black ${esVenta ? 'text-green-600' : 'text-red-600'}">
+                    ${esVenta ? '+' : '-'} ${formatMoney(m.monto)}
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function formatMoney(n) {
+    return '$ ' + Number(n).toLocaleString('es-CO');
+}

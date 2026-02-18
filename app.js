@@ -4,6 +4,11 @@ const sql = require('mssql'); // Asegúrate de haber hecho: npm install mssql
 const app = express();
 const port = process.env.PORT || 3000;
 
+document.addEventListener('DOMContentLoaded', () => {
+    cargarResumen();
+    cargarHistorial();
+});
+
 // Configuración de la conexión (Render usa la variable DATABASE_URL)
 const dbConfig = process.env.DATABASE_URL; 
 
@@ -49,6 +54,16 @@ app.get('/api/resumen-cultivo', async (req, res) => {
         res.json(result.recordset[0]);
     } catch (err) {
         res.status(500).json({ error: 'Error al calcular resumen' });
+    }
+});
+
+app.get('/api/historial', async (req, res) => {
+    try {
+        let pool = await sql.connect(dbConfig);
+        const result = await pool.request().query('SELECT TOP 10 * FROM movimientos ORDER BY fecha DESC');
+        res.json(result.recordset);
+    } catch (err) {
+        res.status(500).send(err.message);
     }
 });
 
