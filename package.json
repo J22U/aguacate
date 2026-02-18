@@ -16,5 +16,8 @@
     "url": "https://github.com/J22U/aguacate/issues"
   },
   "homepage": "https://github.com/J22U/aguacate#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
 }

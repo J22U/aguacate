@@ -1,4 +1,13 @@
+const express = require('express'); // 1. Importas Express
+const app = express();               // 2. CREAS la variable 'app' que faltaba
+const port = process.env.PORT || 3000;
+
+app.use(express.json());             // Para que el servidor entienda datos JSON
+app.use(express.static('public'));
+
 // Ejemplo de ruta en Node.js/Express
+
+
 app.post('/api/registrar-movimiento', async (req, res) => {
     const { lote, monto, tipo, nota } = req.body;
     try {
@@ -10,4 +19,8 @@ app.post('/api/registrar-movimiento', async (req, res) => {
     } catch (err) {
         res.status(500).send("Error en el servidor");
     }
+});
+
+app.listen(port, () => {
+    console.log(`Servidor del cultivo corriendo en el puerto ${port}`);
 });
