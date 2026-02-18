@@ -165,56 +165,73 @@ async function cargarTrabajadores() {
         const contenedor = document.getElementById('lista-trabajadores');
         contenedor.innerHTML = '';
 
-        if (!Array.isArray(lista)) return;
+        if (!Array.isArray(lista) || lista.length === 0) {
+            contenedor.innerHTML = '<p class="text-xs text-slate-400 italic p-2">Sin personal activo</p>';
+            return;
+        }
 
         lista.forEach(t => {
-            // Verificamos cuál es el nombre real de la columna ID
+            // Intentamos capturar el ID de cualquier forma que lo envíe la base de datos
             const idReal = t.id || t.ID || t.Id; 
             
+            // Limpiamos los textos para evitar errores con comillas en el HTML
+            const nombreLimpio = t.nombre ? t.nombre.replace(/'/g, "\\'") : 'Sin Nombre';
+            const laborLimpia = t.labor_principal ? t.labor_principal.replace(/'/g, "\\'") : 'General';
+            const docLimpio = t.documento || '';
+
             contenedor.innerHTML += `
                 <div class="group flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-transparent hover:border-lime-200 transition-all mb-2">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 bg-green-900 text-white rounded-lg flex items-center justify-center font-bold text-xs">
-                            ${t.nombre ? t.nombre.charAt(0).toUpperCase() : '?'}
+                            ${nombreLimpio.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                            <p class="text-xs font-bold text-slate-700">${t.nombre}</p>
-                            <p class="text-[10px] text-slate-400 uppercase font-medium">${t.labor_principal || 'General'}</p>
+                            <p class="text-xs font-bold text-slate-700">${nombreLimpio}</p>
+                            <p class="text-[10px] text-slate-400 uppercase font-medium">${laborLimpia}</p>
                         </div>
                     </div>
                     <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onclick="prepararEdicion(${idReal}, '${t.nombre.replace(/'/g, "\\'")}', '${t.documento}', '${t.labor_principal}')" class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg">
+                        <button onclick="prepararEdicion(${idReal}, '${nombreLimpio}', '${docLimpio}', '${laborLimpia}')" 
+                                class="p-1.5 text-blue-500 hover:bg-blue-100 rounded-lg">
                             <i class="fa-solid fa-pen text-[10px]"></i>
                         </button>
-                        <button onclick="eliminarTrabajador(${idReal})" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg">
+                        <button onclick="eliminarTrabajador(${idReal})" 
+                                class="p-1.5 text-red-500 hover:bg-red-100 rounded-lg">
                             <i class="fa-solid fa-trash text-[10px]"></i>
                         </button>
                     </div>
                 </div>`;
         });
-    } catch (err) { console.error("Error cargando lista:", err); }
+    } catch (err) {
+        console.error("Error cargando trabajadores:", err);
+    }
 }
 
 // ELIMINAR
 async function eliminarTrabajador(id) {
     const result = await Swal.fire({
-        title: '¿Estás seguro?',
-        text: "Esta acción no se puede deshacer",
+        title: '¿Eliminar trabajador?',
+        text: "Esta acción no se puede deshacer.",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#166534',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Sí, eliminar'
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
     });
 
     if (result.isConfirmed) {
         try {
             const res = await fetch(`/api/trabajadores/${id}`, { method: 'DELETE' });
             if (res.ok) {
-                Swal.fire('Eliminado', 'El trabajador ha sido borrado', 'success');
+                Swal.fire('Eliminado', 'El trabajador ha sido quitado de la lista.', 'success');
                 cargarTrabajadores();
+            } else {
+                Swal.fire('Error', 'No se pudo eliminar del servidor.', 'error');
             }
-        } catch (err) { Swal.fire('Error', 'No se pudo eliminar', 'error'); }
+        } catch (err) {
+            Swal.fire('Error', 'Fallo de conexión.', 'error');
+        }
     }
 }
 
