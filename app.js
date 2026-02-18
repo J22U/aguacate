@@ -4,12 +4,12 @@ const sql = require('mssql');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Configuración avanzada para SQL Server
+// FORMA CORRECTA: Pasar el string directamente al objeto de configuración
 const dbConfig = {
-    connectionString: process.env.DATABASE_URL,
+    connectionString: process.env.DATABASE_URL, // Render leerá esto de tu Environment
     options: {
-        encrypt: true, // Necesario para Azure/Render
-        trustServerCertificate: true // Evita errores de handshake SSL
+        encrypt: true,
+        trustServerCertificate: true
     }
 };
 
