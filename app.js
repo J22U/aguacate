@@ -39,18 +39,21 @@ app.get('/', (req, res) => {
 });
 
 // 1. GUARDAR MOVIMIENTO
+// CORRECCIÓN EN EL SERVIDOR (app.js)
 app.post('/api/movimientos', async (req, res) => {
-    const { fecha, lote, monto, kilos, tipo, nota } = req.body; // Asegúrate de incluir 'kilos' aquí
+    const { fecha, lote, monto, kilos, tipo, nota } = req.body;
     try {
         let pool = await connectDB();
         await pool.request()
             .input('fecha', fecha)
-            .input('lote', lote)
+            .input('lote_id', lote) // Cambiamos lote por lote_id
             .input('monto', monto)
-            .input('kilos', kilos) // Y aquí
+            .input('kilos', kilos)
             .input('tipo', tipo)
-            .input('nota', nota)
-            .query('INSERT INTO movimientos (fecha, lote, monto, kilos, tipo, nota) VALUES (@fecha, @lote, @monto, @kilos, @tipo, @nota)');
+            .input('descripcion', nota) // Cambiamos nota por descripcion
+            .query(`INSERT INTO movimientos (fecha, lote_id, monto, kilos, tipo, descripcion) 
+                    VALUES (@fecha, @lote_id, @monto, @kilos, @tipo, @descripcion)`);
+        
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
