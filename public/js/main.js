@@ -130,17 +130,17 @@ async function registrarOperacion() {
     }
 
     try {
-        // 5. ENVÍO DE DATOS AL SERVIDOR
+        // 5. ENVÍO DE DATOS AL SERVIDOR (Corregido para evitar el Error 500)
         const response = await fetch('/api/movimientos', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                fecha, 
-                lote, 
-                monto, 
-                kilos, 
-                tipo, 
-                nota 
+                fecha: fecha, 
+                lote: lote, 
+                monto: Number(monto), // Convertimos a número
+                kilos: Number(kilos), // Convertimos a número
+                tipo: tipo, 
+                nota: nota 
             })
         });
 
@@ -162,8 +162,9 @@ async function registrarOperacion() {
             actualizarTodo(); 
 
         } else {
-            const error = await response.json();
-            Swal.fire('Error', error.error || 'No se pudo guardar', 'error');
+            // Si el servidor responde 500, aquí veremos por qué
+            const errorData = await response.json().catch(() => ({}));
+            Swal.fire('Error del Servidor', errorData.error || 'La base de datos rechazó los nuevos campos (lote/kilos)', 'error');
         }
     } catch (error) {
         console.error("Error en registro:", error);
