@@ -165,3 +165,8 @@ app.put('/api/trabajadores/:id', async (req, res) => {
         res.status(500).json({ error: 'Error al actualizar en la base de datos' });
     }
 });
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Servidor funcionando en puerto ${PORT}`);
+});
