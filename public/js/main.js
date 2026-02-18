@@ -126,3 +126,23 @@ function cerrarSesion() {
     localStorage.removeItem('isLogged');
     window.location.replace('/login');
 }
+
+async function actualizarTablero() {
+    try {
+        const response = await fetch('/api/resumen-cultivo');
+        const data = await response.json();
+
+        // Escribimos los valores en el HTML usando los IDs de tu dashboard
+        document.getElementById('dash-gastos').innerText = formatMoney(data.inversion || 0);
+        document.getElementById('dash-ventas').innerText = formatMoney(data.ventas || 0);
+        document.getElementById('dash-utilidad').innerText = formatMoney((data.ventas || 0) - (data.inversion || 0));
+        document.getElementById('dash-kilos').innerText = `${data.kilos || 0} Kg`;
+        
+    } catch (error) {
+        console.error('Error al actualizar tablero:', error);
+    }
+}
+
+// Llama a esta función al final de tu 'registrarOperacion' para que se actualice al guardar
+// Y también al cargar la página:
+document.addEventListener('DOMContentLoaded', actualizarTablero);

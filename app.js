@@ -30,6 +30,28 @@ app.post('/api/registrar-movimiento', async (req, res) => {
     }
 });
 
+// RUTA PARA OBTENER EL RESUMEN DEL DASHBOARD
+app.get('/api/resumen-cultivo', async (req, res) => {
+    try {
+        let pool = await sql.connect(dbConfig);
+        
+        // Consultamos la suma de gastos y ventas directamente en SQL
+        const result = await pool.request().query(`
+            SELECT 
+                SUM(CASE WHEN tipo IN ('gasto_insumo', 'gasto_jornal') THEN monto ELSE 0 END) as inversion,
+                SUM(CASE WHEN tipo = 'venta' THEN monto ELSE 0 END) as ventas,
+                SUM(CASE WHEN tipo = 'venta' AND descripcion LIKE '%kg%' 
+                         THEN TRY_CAST(SUBSTRING(descripcion, 1, CHARINDEX('kg', descripcion)-1) AS INT) 
+                         ELSE 0 END) as kilos
+            FROM movimientos
+        `);
+
+        res.json(result.recordset[0]);
+    } catch (err) {
+        res.status(500).json({ error: 'Error al calcular resumen' });
+    }
+});
+
 app.listen(port, () => {
     console.log(`Servidor del cultivo corriendo en el puerto ${port}`);
 });
