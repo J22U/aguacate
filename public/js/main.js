@@ -165,12 +165,17 @@ async function cargarTrabajadores() {
         const contenedor = document.getElementById('lista-trabajadores');
         contenedor.innerHTML = '';
 
+        if (!Array.isArray(lista)) return;
+
         lista.forEach(t => {
+            // Verificamos cuál es el nombre real de la columna ID
+            const idReal = t.id || t.ID || t.Id; 
+            
             contenedor.innerHTML += `
                 <div class="group flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-transparent hover:border-lime-200 transition-all mb-2">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 bg-green-900 text-white rounded-lg flex items-center justify-center font-bold text-xs">
-                            ${t.nombre.charAt(0).toUpperCase()}
+                            ${t.nombre ? t.nombre.charAt(0).toUpperCase() : '?'}
                         </div>
                         <div>
                             <p class="text-xs font-bold text-slate-700">${t.nombre}</p>
@@ -178,16 +183,16 @@ async function cargarTrabajadores() {
                         </div>
                     </div>
                     <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onclick="prepararEdicion(${t.id}, '${t.nombre}', '${t.documento}', '${t.labor_principal}')" class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg">
+                        <button onclick="prepararEdicion(${idReal}, '${t.nombre.replace(/'/g, "\\'")}', '${t.documento}', '${t.labor_principal}')" class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg">
                             <i class="fa-solid fa-pen text-[10px]"></i>
                         </button>
-                        <button onclick="eliminarTrabajador(${t.id})" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg">
+                        <button onclick="eliminarTrabajador(${idReal})" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg">
                             <i class="fa-solid fa-trash text-[10px]"></i>
                         </button>
                     </div>
                 </div>`;
         });
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Error cargando lista:", err); }
 }
 
 // ELIMINAR
@@ -215,35 +220,86 @@ async function eliminarTrabajador(id) {
 
 // EDITAR (Usando SweetAlert para el formulario)
 async function prepararEdicion(id, nombre, documento, labor) {
+    // 1. Validación de seguridad inicial
+    if (!id || id === 'undefined') {
+        return Swal.fire({
+            icon: 'error',
+            title: 'Error de ID',
+            text: 'No se pudo capturar el ID del trabajador. Por favor, recarga la página.'
+        });
+    }
+
+    // 2. Abrir el formulario emergente con los datos actuales
     const { value: formValues } = await Swal.fire({
         title: 'Editar Trabajador',
-        html:
-            `<input id="swal-nombre" class="swal2-input" placeholder="Nombre" value="${nombre}">` +
-            `<input id="swal-doc" class="swal2-input" placeholder="Cédula" value="${documento}">` +
-            `<input id="swal-labor" class="swal2-input" placeholder="Labor" value="${labor}">`,
+        html: `
+            <div style="text-align: left; font-size: 0.8rem; color: #64748b; margin-bottom: 5px; margin-left: 10%;">Nombre Completo</div>
+            <input id="swal-nombre" class="swal2-input" placeholder="Nombre" value="${nombre}">
+            
+            <div style="text-align: left; font-size: 0.8rem; color: #64748b; margin-bottom: 5px; margin-left: 10%;">Cédula / Documento</div>
+            <input id="swal-doc" class="swal2-input" placeholder="Cédula" value="${documento}">
+            
+            <div style="text-align: left; font-size: 0.8rem; color: #64748b; margin-bottom: 5px; margin-left: 10%;">Labor o Cargo</div>
+            <input id="swal-labor" class="swal2-input" placeholder="Labor" value="${labor}">
+        `,
         focusConfirm: false,
         showCancelButton: true,
         confirmButtonText: 'Guardar Cambios',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#166534', // Verde oscuro para que combine con tu diseño
         preConfirm: () => {
-            return {
-                nombre: document.getElementById('swal-nombre').value,
-                documento: document.getElementById('swal-doc').value,
-                labor: document.getElementById('swal-labor').value
+            const nuevoNombre = document.getElementById('swal-nombre').value.trim();
+            const nuevoDoc = document.getElementById('swal-doc').value.trim();
+            const nuevaLabor = document.getElementById('swal-labor').value.trim();
+
+            if (!nuevoNombre || !nuevoDoc) {
+                Swal.showValidationMessage('Nombre y Documento son obligatorios');
+                return false;
             }
+
+            return {
+                nombre: nuevoNombre,
+                documento: nuevoDoc,
+                labor: nuevaLabor
+            };
         }
     });
 
+    // 3. Si el usuario confirmó los cambios, enviar al servidor
     if (formValues) {
+        // Mostrar alerta de "Cargando..."
+        Swal.fire({
+            title: 'Actualizando...',
+            didOpen: () => { Swal.showLoading(); }
+        });
+
         try {
             const res = await fetch(`/api/trabajadores/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formValues)
             });
+
             if (res.ok) {
-                Swal.fire('Actualizado', 'Datos guardados', 'success');
-                cargarTrabajadores();
+                await Swal.fire({
+                    icon: 'success',
+                    title: '¡Actualizado!',
+                    text: 'Los datos del trabajador se han modificado correctamente.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                cargarTrabajadores(); // Refrescar la lista en pantalla
+            } else {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Error desconocido en el servidor');
             }
-        } catch (err) { Swal.fire('Error', 'No se pudo actualizar', 'error'); }
+        } catch (err) {
+            console.error("Error en PUT:", err);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error al actualizar',
+                text: err.message || 'No se pudo conectar con el servidor.'
+            });
+        }
     }
 }
