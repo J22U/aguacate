@@ -165,24 +165,85 @@ async function cargarTrabajadores() {
         const contenedor = document.getElementById('lista-trabajadores');
         contenedor.innerHTML = '';
 
-        if (!Array.isArray(lista) || lista.length === 0) {
-            contenedor.innerHTML = '<p class="text-xs text-slate-400 italic">No hay personal registrado</p>';
-            return;
-        }
-
         lista.forEach(t => {
             contenedor.innerHTML += `
-                <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-transparent hover:border-lime-200 transition-all mb-2">
-                    <div class="w-8 h-8 bg-green-900 text-white rounded-lg flex items-center justify-center font-bold text-xs">
-                        ${t.nombre.charAt(0).toUpperCase()}
+                <div class="group flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-transparent hover:border-lime-200 transition-all mb-2">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-green-900 text-white rounded-lg flex items-center justify-center font-bold text-xs">
+                            ${t.nombre.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-700">${t.nombre}</p>
+                            <p class="text-[10px] text-slate-400 uppercase font-medium">${t.labor_principal || 'General'}</p>
+                        </div>
                     </div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-700">${t.nombre}</p>
-                        <p class="text-[10px] text-slate-400 uppercase font-medium">${t.labor_principal || 'General'}</p>
+                    <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="prepararEdicion(${t.id}, '${t.nombre}', '${t.documento}', '${t.labor_principal}')" class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg">
+                            <i class="fa-solid fa-pen text-[10px]"></i>
+                        </button>
+                        <button onclick="eliminarTrabajador(${t.id})" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg">
+                            <i class="fa-solid fa-trash text-[10px]"></i>
+                        </button>
                     </div>
                 </div>`;
         });
-    } catch (err) {
-        console.error("Error cargando trabajadores:", err);
+    } catch (err) { console.error(err); }
+}
+
+// ELIMINAR
+async function eliminarTrabajador(id) {
+    const result = await Swal.fire({
+        title: '¿Estás seguro?',
+        text: "Esta acción no se puede deshacer",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#166534',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, eliminar'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const res = await fetch(`/api/trabajadores/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                Swal.fire('Eliminado', 'El trabajador ha sido borrado', 'success');
+                cargarTrabajadores();
+            }
+        } catch (err) { Swal.fire('Error', 'No se pudo eliminar', 'error'); }
+    }
+}
+
+// EDITAR (Usando SweetAlert para el formulario)
+async function prepararEdicion(id, nombre, documento, labor) {
+    const { value: formValues } = await Swal.fire({
+        title: 'Editar Trabajador',
+        html:
+            `<input id="swal-nombre" class="swal2-input" placeholder="Nombre" value="${nombre}">` +
+            `<input id="swal-doc" class="swal2-input" placeholder="Cédula" value="${documento}">` +
+            `<input id="swal-labor" class="swal2-input" placeholder="Labor" value="${labor}">`,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Guardar Cambios',
+        preConfirm: () => {
+            return {
+                nombre: document.getElementById('swal-nombre').value,
+                documento: document.getElementById('swal-doc').value,
+                labor: document.getElementById('swal-labor').value
+            }
+        }
+    });
+
+    if (formValues) {
+        try {
+            const res = await fetch(`/api/trabajadores/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formValues)
+            });
+            if (res.ok) {
+                Swal.fire('Actualizado', 'Datos guardados', 'success');
+                cargarTrabajadores();
+            }
+        } catch (err) { Swal.fire('Error', 'No se pudo actualizar', 'error'); }
     }
 }

@@ -130,4 +130,34 @@ app.get('/api/trabajadores', async (req, res) => {
     }
 });
 
+// ELIMINAR TRABAJADOR
+app.delete('/api/trabajadores/:id', async (req, res) => {
+    try {
+        let pool = await connectDB();
+        await pool.request()
+            .input('id', sql.Int, req.params.id)
+            .query('DELETE FROM trabajadores WHERE id = @id');
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// EDITAR TRABAJADOR
+app.put('/api/trabajadores/:id', async (req, res) => {
+    const { nombre, documento, labor } = req.body;
+    try {
+        let pool = await connectDB();
+        await pool.request()
+            .input('id', sql.Int, req.params.id)
+            .input('nombre', sql.NVarChar, nombre)
+            .input('documento', sql.NVarChar, documento)
+            .input('labor', sql.NVarChar, labor)
+            .query('UPDATE trabajadores SET nombre = @nombre, documento = @documento, labor_principal = @labor WHERE id = @id');
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.listen(port, () => console.log(`Servidor activo en puerto ${port}`));
