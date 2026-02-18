@@ -66,18 +66,18 @@ async function cargarHistorial() {
         movimientos.forEach(m => {
             const esVenta = m.tipo === 'venta';
             
-            // Lógica para sumar kilos: busca un número seguido de "kg" en la descripción
-            if (esVenta && m.nota) {
-                const match = m.nota.match(/(\d+)\s*kg/i);
-                if (match) totalKilos += parseInt(match[1]);
+            // SUMA DE KILOS REAL: Usamos el campo numérico de la BD
+            if (esVenta && m.kilos) {
+                totalKilos += parseFloat(m.kilos);
             }
 
             const fechaFormateada = m.fecha ? new Date(m.fecha).toLocaleDateString('es-CO', {timeZone: 'UTC'}) : 'S/F';
             const colorMonto = esVenta ? 'text-green-600' : 'text-red-600';
             const simbolo = esVenta ? '+' : '-';
 
+            // AGREGAMOS data-tipo="${m.tipo}" PARA QUE EL FILTRO FUNCIONE
             tabla.innerHTML += `
-                <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
+                <tr data-tipo="${m.tipo}" class="hover:bg-slate-50 transition-colors border-b border-slate-100">
                     <td class="px-8 py-4">
                         <p class="font-bold text-slate-700">${fechaFormateada}</p>
                         <p class="text-[10px] text-slate-400 uppercase font-black">Lote ${m.lote_id || 1}</p>
@@ -86,7 +86,8 @@ async function cargarHistorial() {
                         <span class="${esVenta ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} px-2 py-0.5 rounded-full text-[9px] font-black uppercase mr-2">
                             ${m.tipo.replace('_', ' ')}
                         </span>
-                        <span class="text-slate-600">${m.nota || ''}</span>
+                        <span class="text-slate-600">${m.descripcion || m.nota || ''}</span>
+                        ${m.kilos > 0 ? `<b class="ml-2 text-slate-400 text-xs">(${m.kilos} Kg)</b>` : ''}
                     </td>
                     <td class="px-8 py-4 text-right font-black ${colorMonto}">
                         ${simbolo} ${formatMoney(m.monto)}
@@ -94,7 +95,9 @@ async function cargarHistorial() {
                 </tr>`;
         });
 
-        document.getElementById('dash-kilos').innerText = `${totalKilos} Kg`;
+        // Actualizamos el dashboard con la suma real
+        const dashKilos = document.getElementById('dash-kilos');
+        if(dashKilos) dashKilos.innerText = `${totalKilos.toLocaleString()} Kg`;
 
     } catch (err) {
         console.error("Error cargando historial:", err);
@@ -354,18 +357,19 @@ async function prepararEdicion(id, nombre, documento, labor) {
 }
 
 function filtrarTabla() {
-    const busqueda = document.getElementById('filter-busqueda').value.toLowerCase();
-    const tipoFiltro = document.getElementById('filter-tipo').value; // El valor del select
+    // Obtenemos valores y limpiamos espacios
+    const busqueda = document.getElementById('filter-busqueda').value.toLowerCase().trim();
+    const tipoFiltro = document.getElementById('filter-tipo').value; 
     const filas = document.querySelectorAll('#tabla-movimientos tr');
 
     filas.forEach(fila => {
         const textoFila = fila.innerText.toLowerCase();
-        const tipoFila = fila.getAttribute('data-tipo'); // Sacamos el tipo real del atributo
+        const tipoFila = fila.getAttribute('data-tipo'); 
 
-        const coincideBusqueda = textoFila.includes(busqueda);
-        // Filtro de tipo: si el select está vacío o coincide exactamente con el tipo guardado
+        const coincideBusqueda = busqueda === "" || textoFila.includes(busqueda);
         const coincideTipo = tipoFiltro === "" || tipoFila === tipoFiltro;
 
+        // Mostrar u ocultar
         fila.style.display = (coincideBusqueda && coincideTipo) ? "" : "none";
     });
 }
