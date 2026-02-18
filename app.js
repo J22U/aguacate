@@ -100,6 +100,7 @@ app.get('/api/historial', async (req, res) => {
 });
 
 // 4. REGISTRAR TRABAJADOR
+// REGISTRAR TRABAJADOR (Corregido)
 app.post('/api/trabajadores', async (req, res) => {
     const { nombre, documento, labor } = req.body;
     if (!nombre || !documento) return res.status(400).json({ error: "Datos incompletos" });
@@ -109,8 +110,10 @@ app.post('/api/trabajadores', async (req, res) => {
         await pool.request()
             .input('nombre', sql.NVarChar, nombre)
             .input('documento', sql.NVarChar, documento)
-            .input('labor_principal', sql.NVarChar, labor || 'General')
-            .query('INSERT INTO trabajadores (nombre, documento, labor_principal) VALUES (@nombre, @documento, @labor_principal)');
+            .input('labor', sql.NVarChar, labor || 'General')
+            // Corregido: Quitamos el SELECT y el ID (que es automático)
+            .query('INSERT INTO trabajadores (nombre, documento, labor_principal) VALUES (@nombre, @documento, @labor)');
+        
         res.json({ success: true });
     } catch (err) {
         console.error("Error al registrar trabajador:", err.message);
@@ -118,14 +121,14 @@ app.post('/api/trabajadores', async (req, res) => {
     }
 });
 
-// 5. LISTA TRABAJADORES
+// OBTENER TRABAJADORES (Asegúrate de que incluya el ID)
 app.get('/api/trabajadores', async (req, res) => {
     try {
         let pool = await connectDB();
-        const result = await pool.request().query('SELECT nombre, labor_principal FROM trabajadores ORDER BY nombre ASC');
-        res.json(result.recordset || []);
+        // IMPORTANTE: SELECT id para que el frontend pueda editar/eliminar
+        const result = await pool.request().query('SELECT id, nombre, documento, labor_principal FROM trabajadores');
+        res.json(result.recordset);
     } catch (err) {
-        console.error("Error al cargar lista:", err.message);
         res.status(500).json({ error: err.message });
     }
 });
