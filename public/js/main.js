@@ -1,50 +1,21 @@
-// --- VARIABLES GLOBALES ---
-let movimientos = JSON.parse(localStorage.getItem('movimientos_cultivo')) || [];
-let trabajadores = JSON.parse(localStorage.getItem('trabajadores_cultivo')) || [];
-
-// --- AL INICIAR ---
+// --- INICIO ---
 document.addEventListener('DOMContentLoaded', () => {
-    actualizarDashboard();
-    renderizarMovimientos();
-    renderizarTrabajadores();
+    actualizarTodo();
     
-    // Mostrar fecha actual
+    // Mostrar fecha actual en el encabezado
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-ES', options);
+    const fechaTexto = new Date().toLocaleDateString('es-ES', options);
+    document.getElementById('current-date').innerText = fechaTexto;
 });
 
-// --- FUNCIONES DE CÁLCULO (EL "MOTOR") ---
-function actualizarDashboard() {
-    let inversion = 0; // Gastos (Insumos + Jornales)
-    let ventas = 0;    // Ingresos por fruta
-    let kilos = 0;     // Solo si registraste kilos en la nota
-
-    movimientos.forEach(m => {
-        if (m.tipo === 'gasto_insumo' || m.tipo === 'gasto_jornal') {
-            inversion += parseFloat(m.monto);
-        } else if (m.tipo === 'venta') {
-            ventas += parseFloat(m.monto);
-            // Intenta extraer kilos si pusiste algo como "200kg" en la nota
-            const matchKilos = m.nota.match(/(\d+)\s*kg/i);
-            if (matchKilos) kilos += parseInt(matchKilos[1]);
-        }
-    });
-
-    const utilidad = ventas - inversion;
-
-    // Actualizar el HTML con formato moneda
-    document.getElementById('dash-gastos').innerText = formatMoney(inversion);
-    document.getElementById('dash-ventas').innerText = formatMoney(ventas);
-    document.getElementById('dash-utilidad').innerText = formatMoney(utilidad);
-    document.getElementById('dash-kilos').innerText = `${kilos} Kg`;
-
-    // Cambiar color de utilidad si es negativa
-    const utilElement = document.getElementById('dash-utilidad');
-    utilElement.classList.toggle('text-red-200', utilidad < 0);
+// --- FUNCIÓN MAESTRA: CARGAR TODO DESDE EL SERVIDOR ---
+async function actualizarTodo() {
+    await cargarResumen();
+    await cargarHistorial();
 }
 
-// --- REGISTRAR OPERACIÓN ---
-function registrarOperacion() {
+// --- REGISTRAR OPERACIÓN (ENVÍO AL SERVIDOR) ---
+async function registrarOperacion() {
     const lote = document.getElementById('mov_lote').value;
     const monto = document.getElementById('mov_monto').value;
     const tipo = document.getElementById('mov_tipo').value;
@@ -54,138 +25,109 @@ function registrarOperacion() {
         return Swal.fire('Error', 'Debes ingresar un monto válido', 'error');
     }
 
-    const nuevaOp = {
-        id: Date.now(),
-        fecha: new Date().toLocaleDateString(),
-        lote,
-        monto,
-        tipo,
-        nota
-    };
+    const datos = { lote, monto, tipo, nota };
 
-    movimientos.unshift(nuevaOp); // Agregar al inicio
-    localStorage.setItem('movimientos_cultivo', JSON.stringify(movimientos));
-    
-    // Limpiar campos
-    document.getElementById('mov_monto').value = '';
-    document.getElementById('mov_nota').value = '';
-
-    actualizarDashboard();
-    renderizarMovimientos();
-    
-    Swal.fire({
-        title: '¡Registrado!',
-        text: 'Movimiento de finca guardado correctamente',
-        icon: 'success',
-        timer: 1500,
-        showConfirmButton: false
-    });
-}
-
-// --- RENDERIZAR TABLA ---
-function renderizarMovimientos() {
-    const tabla = document.getElementById('tabla-movimientos');
-    tabla.innerHTML = '';
-
-    movimientos.forEach(m => {
-        const esVenta = m.tipo === 'venta';
-        const badgeClass = esVenta ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600';
-        const signo = esVenta ? '+' : '-';
-        const colorMonto = esVenta ? 'text-green-600' : 'text-red-600';
-
-        tabla.innerHTML += `
-            <tr class="hover:bg-slate-50 transition-colors">
-                <td class="px-8 py-4">
-                    <div class="font-bold text-slate-700">${m.fecha}</div>
-                    <div class="text-[10px] uppercase font-black text-slate-400">${m.lote}</div>
-                </td>
-                <td class="px-8 py-4">
-                    <span class="${badgeClass} px-2 py-0.5 rounded-full text-[9px] font-black uppercase mr-2">
-                        ${m.tipo.replace('_', ' ')}
-                    </span>
-                    <span class="text-slate-600">${m.nota}</span>
-                </td>
-                <td class="px-8 py-4 text-right font-black ${colorMonto}">
-                    ${signo} ${formatMoney(m.monto)}
-                </td>
-            </tr>
-        `;
-    });
-}
-
-// --- UTILIDADES ---
-function formatMoney(valor) {
-    return new Intl.NumberFormat('es-CO', {
-        style: 'currency',
-        currency: 'COP',
-        minimumFractionDigits: 0
-    }).format(valor);
-}
-
-function cerrarSesion() {
-    localStorage.removeItem('isLogged');
-    window.location.replace('/login');
-}
-
-async function actualizarTablero() {
     try {
-        const response = await fetch('/api/resumen-cultivo');
-        const data = await response.json();
+        const response = await fetch('/api/movimientos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+        });
 
-        // Escribimos los valores en el HTML usando los IDs de tu dashboard
-        document.getElementById('dash-gastos').innerText = formatMoney(data.inversion || 0);
-        document.getElementById('dash-ventas').innerText = formatMoney(data.ventas || 0);
-        document.getElementById('dash-utilidad').innerText = formatMoney((data.ventas || 0) - (data.inversion || 0));
-        document.getElementById('dash-kilos').innerText = `${data.kilos || 0} Kg`;
-        
+        if (response.ok) {
+            Swal.fire({
+                title: '¡Registrado!',
+                text: 'Los datos se guardaron en la base de datos',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            });
+            
+            // Limpiar campos
+            document.getElementById('mov_monto').value = '';
+            document.getElementById('mov_nota').value = '';
+            
+            // Refrescar la pantalla con datos nuevos
+            actualizarTodo();
+        }
     } catch (error) {
-        console.error('Error al actualizar tablero:', error);
+        Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
     }
 }
 
-// Llama a esta función al final de tu 'registrarOperacion' para que se actualice al guardar
-// Y también al cargar la página:
-document.addEventListener('DOMContentLoaded', actualizarTablero);
-
-// FUNCIÓN: Actualizar Cuadros (Dashboard)
+// --- OBTENER RESUMEN (LOS CUADROS DE COLORES) ---
 async function cargarResumen() {
-    const res = await fetch('/api/resumen');
-    const data = await res.json();
-    
-    const inversion = data.inversion || 0;
-    const ventas = data.ventas || 0;
-    const utilidad = ventas - inversion;
+    try {
+        const res = await fetch('/api/resumen');
+        const data = await res.json();
+        
+        const inversion = parseFloat(data.inversion || 0);
+        const ventas = parseFloat(data.ventas || 0);
+        const utilidad = ventas - inversion;
 
-    document.getElementById('dash-gastos').innerText = formatMoney(inversion);
-    document.getElementById('dash-ventas').innerText = formatMoney(ventas);
-    document.getElementById('dash-utilidad').innerText = formatMoney(utilidad);
+        document.getElementById('dash-gastos').innerText = formatMoney(inversion);
+        document.getElementById('dash-ventas').innerText = formatMoney(ventas);
+        document.getElementById('dash-utilidad').innerText = formatMoney(utilidad);
+        
+        // El cálculo de kilos lo hacemos basado en el historial que recibimos
+        // o puedes añadirlo a la consulta SQL del servidor si prefieres
+    } catch (err) {
+        console.error("Error al cargar resumen:", err);
+    }
 }
 
-// FUNCIÓN: Dibujar Tabla de Historial
+// --- DIBUJAR TABLA DE HISTORIAL ---
 async function cargarHistorial() {
-    const res = await fetch('/api/historial');
-    const movimientos = await res.json();
-    const tabla = document.getElementById('tabla-movimientos');
-    tabla.innerHTML = '';
+    try {
+        const res = await fetch('/api/historial');
+        const movimientos = await res.json();
+        const tabla = document.getElementById('tabla-movimientos');
+        tabla.innerHTML = '';
 
-    movimientos.forEach(m => {
-        const esVenta = m.tipo === 'venta';
-        tabla.innerHTML += `
-            <tr>
-                <td class="px-8 py-4 font-bold text-xs">${new Date(m.fecha).toLocaleDateString()} - ${m.lote}</td>
-                <td class="px-8 py-4">
-                    <span class="${esVenta ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} px-2 py-0.5 rounded-full text-[9px] font-black uppercase mr-2">
-                        ${m.tipo}
-                    </span> ${m.nota}
-                </td>
-                <td class="px-8 py-4 text-right font-black ${esVenta ? 'text-green-600' : 'text-red-600'}">
-                    ${esVenta ? '+' : '-'} ${formatMoney(m.monto)}
-                </td>
-            </tr>
-        `;
-    });
+        let totalKilos = 0;
+
+        movimientos.forEach(m => {
+            const esVenta = m.tipo === 'venta';
+            const colorMonto = esVenta ? 'text-green-600' : 'text-red-600';
+            const signo = esVenta ? '+' : '-';
+
+            // Extraer kilos para el dashboard de forma automática
+            if (esVenta) {
+                const matchKilos = m.nota.match(/(\d+)\s*kg/i);
+                if (matchKilos) totalKilos += parseInt(matchKilos[1]);
+            }
+
+            tabla.innerHTML += `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-8 py-4">
+                        <div class="font-bold text-slate-700">${new Date(m.fecha).toLocaleDateString()}</div>
+                        <div class="text-[10px] uppercase font-black text-slate-400">${m.lote}</div>
+                    </td>
+                    <td class="px-8 py-4">
+                        <span class="${esVenta ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} px-2 py-0.5 rounded-full text-[9px] font-black uppercase mr-2">
+                            ${m.tipo.replace('_', ' ')}
+                        </span>
+                        <span class="text-slate-600">${m.nota}</span>
+                    </td>
+                    <td class="px-8 py-4 text-right font-black ${colorMonto}">
+                        ${signo} ${formatMoney(m.monto)}
+                    </td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('dash-kilos').innerText = `${totalKilos} Kg`;
+
+    } catch (err) {
+        console.error("Error al cargar historial:", err);
+    }
 }
 
+// --- UTILIDADES ---
 function formatMoney(n) {
-    return '$ ' + Number(n).toLocaleString('es-CO');
+    return '$ ' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
+}
+
+function cerrarSesion() {
+    window.location.replace('/login');
 }

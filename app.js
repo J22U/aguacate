@@ -4,11 +4,6 @@ const sql = require('mssql'); // Asegúrate de haber hecho: npm install mssql
 const app = express();
 const port = process.env.PORT || 3000;
 
-document.addEventListener('DOMContentLoaded', () => {
-    cargarResumen();
-    cargarHistorial();
-});
-
 // Configuración de la conexión (Render usa la variable DATABASE_URL)
 const dbConfig = process.env.DATABASE_URL; 
 
