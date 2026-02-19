@@ -71,7 +71,6 @@ async function cargarHistorial() {
         movimientos.forEach(m => {
             const esVenta = m.tipo === 'venta';
             
-            // SUMA DE KILOS REAL: Usamos el campo numérico de la BD
             if (esVenta && m.kilos) {
                 totalKilos += parseFloat(m.kilos);
             }
@@ -80,7 +79,9 @@ async function cargarHistorial() {
             const colorMonto = esVenta ? 'text-green-600' : 'text-red-600';
             const simbolo = esVenta ? '+' : '-';
 
-            // AGREGAMOS data-tipo, data-lote, data-monto y data-kilos PARA QUE EL FILTRO FUNCIONE
+            // PRIORIDAD DE DESCRIPCIÓN: Usamos nota si descripcion no existe
+            const textoDescripcion = m.descripcion || m.nota || '';
+
             tabla.innerHTML += `
                 <tr data-tipo="${m.tipo}" 
                     data-lote="${m.lote_id || ''}" 
@@ -89,13 +90,13 @@ async function cargarHistorial() {
                     class="hover:bg-slate-50 transition-colors border-b border-slate-100">
                     <td class="px-8 py-4">
                         <p class="font-bold text-slate-700">${fechaFormateada}</p>
-                        <p class="text-[10px] text-slate-400 uppercase font-black">${m.lote_id || 'General'}</p>
+                        <p class="text-[10px] text-slate-400 uppercase font-black">Lote ${m.lote_id || '1'}</p>
                     </td>
                     <td class="px-8 py-4">
                         <span class="${esVenta ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} px-2 py-0.5 rounded-full text-[9px] font-black uppercase mr-2">
                             ${m.tipo.replace('_', ' ')}
                         </span>
-                        <span class="text-slate-600">${m.descripcion || m.nota || ''}</span>
+                        <span class="text-slate-600 movimiento-descripcion">${textoDescripcion}</span>
                         ${m.kilos > 0 ? `<b class="ml-2 text-slate-400 text-xs">(${m.kilos} Kg)</b>` : ''}
                     </td>
                     <td class="px-8 py-4 text-right font-black ${colorMonto}">
@@ -104,11 +105,10 @@ async function cargarHistorial() {
                 </tr>`;
         });
 
-        // Actualizamos el dashboard con la suma inicial
         const dashKilos = document.getElementById('dash-kilos');
         if(dashKilos) dashKilos.innerText = `${totalKilos.toLocaleString()} Kg`;
 
-        // Si hay filtros puestos, reaplicarlos tras la carga
+        // RE-APLICAR FILTRO: Esto asegura que si buscaste algo, la tabla se mantenga filtrada al recargar
         filtrarTabla();
 
     } catch (err) {
