@@ -107,16 +107,18 @@ app.get('/api/resumen', async (req, res) => {
 });
 
 // 3. HISTORIAL (Incluye ISNULL para mayor estabilidad)
+// 3. HISTORIAL (Corregido para incluir el ID necesario para editar/eliminar)
 app.get('/api/historial', async (req, res) => {
     try {
         let pool = await connectDB();
         const result = await pool.request().query(`
-            SELECT TOP 15 
+            SELECT TOP 50 
+                id, -- ESTE ES VITAL PARA PODER EDITAR
                 fecha, 
                 tipo, 
                 ISNULL(monto, 0) as monto, 
                 ISNULL(kilos, 0) as kilos,
-                ISNULL(descripcion, '') as descripcion, -- CAMBIAMOS 'as nota' por 'as descripcion'
+                ISNULL(descripcion, '') as descripcion, 
                 ISNULL(lote_id, 1) as lote_id 
             FROM movimientos 
             ORDER BY fecha DESC, id DESC
@@ -128,6 +130,47 @@ app.get('/api/historial', async (req, res) => {
     }
 });
 
+// NUEVA: ACTUALIZAR MOVIMIENTO EXISTENTE
+app.put('/api/historial/:id', async (req, res) => {
+    const { id } = req.params;
+    const { fecha, monto, kilos, descripcion } = req.body;
+
+    try {
+        let pool = await connectDB();
+        await pool.request()
+            .input('id', sql.Int, id)
+            .input('fecha', sql.VarChar, fecha) // Ajusta a sql.DateTime si tu DB lo requiere
+            .input('monto', sql.Decimal(18, 2), monto)
+            .input('kilos', sql.Decimal(18, 2), kilos)
+            .input('descripcion', sql.NVarChar, descripcion)
+            .query(`
+                UPDATE movimientos 
+                SET fecha = @fecha, 
+                    monto = @monto, 
+                    kilos = @kilos, 
+                    descripcion = @descripcion 
+                WHERE id = @id
+            `);
+        
+        res.json({ success: true, message: 'Movimiento actualizado correctamente' });
+    } catch (err) {
+        console.error("Error al actualizar movimiento:", err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// NUEVA: ELIMINAR MOVIMIENTO
+app.delete('/api/historial/:id', async (req, res) => {
+    try {
+        let pool = await connectDB();
+        await pool.request()
+            .input('id', sql.Int, req.params.id)
+            .query('DELETE FROM movimientos WHERE id = @id');
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 // 4. REGISTRAR TRABAJADOR
 // REGISTRAR TRABAJADOR (Corregido)
 app.post('/api/trabajadores', async (req, res) => {
