@@ -22,9 +22,9 @@
             }
             // Forzamos limpieza de filtros al recargar para mostrar TODO
             if(document.getElementById('filter-busqueda')) document.getElementById('filter-busqueda').value = '';
-    if(document.getElementById('filter-cosecha')) document.getElementById('filter-cosecha').value = '';
-    if(document.getElementById('filter-tipo')) document.getElementById('filter-tipo').value = '';
-    if(document.getElementById('filter-fecha')) document.getElementById('filter-fecha').value = ''; // AÑADE ESTA LÍNEA
+            if(document.getElementById('filter-cosecha')) document.getElementById('filter-cosecha').value = '';
+            if(document.getElementById('filter-tipo')) document.getElementById('filter-tipo').value = '';
+            if(document.getElementById('filter-fecha')) document.getElementById('filter-fecha').value = ''; 
             
             if (typeof actualizarTodo === 'function') actualizarTodo();
         }
@@ -70,6 +70,8 @@
         .card-gradient-harvest { background: linear-gradient(135deg, #d97706 0%, #92400e 100%); }
         .card-gradient-balance { background: linear-gradient(135deg, #059669 0%, #064e3b 100%); }
         .card-gradient-avocado { background: linear-gradient(135deg, #3f6212 0%, #166534 100%); }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -125,9 +127,8 @@
                     <div class="space-y-4">
                         <input type="date" id="mov_fecha" class="w-full p-3 rounded-xl border bg-slate-50 outline-none">
                         <select id="mov_lote" class="w-full p-3 rounded-xl bg-slate-50 border font-bold text-green-800">
-                            <option value="1">🥑 Cosecha Principal 2026</option>
-                            <option value="2">🥑 Cosecha Traviesa 2026</option>
-                            <option value="3">📦 Histórico 2025</option>
+                            <option value="2">📅 Año 2026</option>
+                            <option value="1">📅 Año 2025</option>
                         </select>
                         <div class="grid grid-cols-2 gap-3">
                             <input type="number" id="mov_monto" placeholder="Monto $" class="w-full p-3 rounded-xl border outline-none">
@@ -152,12 +153,11 @@
                         <input type="text" id="filter-busqueda" oninput="filtrarTabla()" placeholder="Escribe para buscar..." class="w-full p-3 bg-slate-50 border rounded-xl outline-none text-sm">
                     </div>
                     <div>
-                        <label class="text-[10px] font-black uppercase text-slate-400">Cosecha</label>
+                        <label class="text-[10px] font-black uppercase text-slate-400">Año</label>
                         <select id="filter-cosecha" onchange="filtrarTabla()" class="w-full p-3 bg-slate-50 border rounded-xl text-sm font-bold text-green-700">
-                            <option value="">🔎 Ver Todas</option>
-                            <option value="1">Principal 2026</option>
-                            <option value="2">Traviesa 2026</option>
-                            <option value="3">Histórico 2025</option>
+                            <option value="">🔎 Ver Todos</option>
+                            <option value="2">2026</option>
+                            <option value="1">2025</option>
                         </select>
                     </div>
                     <div>
@@ -186,10 +186,10 @@
                             <button onclick="actualizarTodo()" class="text-green-600"><i class="fa-solid fa-sync"></i></button>
                         </div>
                         <div class="overflow-x-auto max-h-[500px] overflow-y-auto custom-scroll"> 
-                            <table class="w-full text-left sticky-header">
-                                <thead class="bg-slate-50 text-[10px] font-black uppercase">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-50 text-[10px] font-black uppercase sticky top-0 z-10">
                                     <tr>
-                                        <th class="px-8 py-4">Fecha / Lote</th>
+                                        <th class="px-8 py-4">Fecha / Año</th>
                                         <th class="px-8 py-4">Descripción</th>
                                         <th class="px-8 py-4 text-right">Valor</th>
                                     </tr>
