@@ -67,35 +67,34 @@ async function cargarHistorial() {
         if (!tabla) return;
         tabla.innerHTML = '';
         
-        // Contadores para el Dashboard
         let totalGastos = 0;
         let totalVentas = 0;
         let totalKilos = 0;
 
-        // 1. ORDENAR POR FECHA (Descendente: lo nuevo arriba)
         movimientos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
         movimientos.forEach((m, index) => {
-            // Reparación de Lote: Si está vacío en la BD, le ponemos "3" (Histórico)
             const loteAsignado = m.lote_id || "3"; 
             
-            const esVenta = m.tipo === 'venta';
+            // CORRECCIÓN AQUÍ: Normalizamos el tipo para la comparación
+            const tipoNormalizado = m.tipo ? m.tipo.toLowerCase().trim() : "";
+            const esVenta = tipoNormalizado === 'venta';
+            
             const monto = parseFloat(m.monto) || 0;
             const kilos = parseFloat(m.kilos) || 0;
 
             // Sumas para Dashboard
             if (esVenta) {
                 totalVentas += monto;
-                totalKilos += kilos;
+                totalKilos += kilos; // Ahora sí entrará aquí con seguridad
             } else {
                 totalGastos += monto;
             }
 
-            // Limpieza de fecha (quitar la hora 12:00:00 AM)
+            // Limpieza de fecha
             const soloFecha = m.fecha.split(' ')[0]; 
-            const fechaPartes = soloFecha.split('/'); // Asumiendo formato M/D/YYYY o D/M/YYYY
-            // Creamos la fecha localmente para evitar desfases
             const fechaMostrar = soloFecha; 
+            const descSegura = (m.descripcion || 'Sin descripción').replace(/'/g, "\\'");
 
             tabla.innerHTML += `
                 <tr onclick="toggleDetalle(${index})" 
@@ -105,7 +104,7 @@ async function cargarHistorial() {
                     class="cursor-pointer hover:bg-slate-50 border-b border-slate-100">
                     <td class="px-8 py-4">
                         <p class="font-bold text-slate-700">${fechaMostrar}</p>
-                        <p class="text-[10px] text-slate-400 uppercase font-black">Lote ${loteAsignado}</p>
+                        <p class="text-[10px] text-slate-400 uppercase font-black">Año ${loteAsignado === "1" ? "2025" : "2026"}</p>
                     </td>
                     <td class="px-8 py-4">
                         <span class="${esVenta ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} px-2 py-0.5 rounded-full text-[9px] font-black uppercase mr-2">
@@ -119,25 +118,33 @@ async function cargarHistorial() {
                 </tr>
                 <tr id="detalle-${index}" class="hidden bg-slate-50">
                     <td colspan="3" class="px-8 py-4 text-center">
-                        <div class="flex justify-around">
+                        <div class="flex justify-around items-center">
                             <span class="text-sm"><b>Kilos:</b> ${kilos} Kg</span>
-                            <button onclick="eliminarMovimiento(${m.id})" class="text-red-500 font-bold">[ ELIMINAR ]</button>
+                            
+                            <button onclick="abrirEditar(${m.id}, '${soloFecha}', ${monto}, ${kilos}, '${descSegura}')" 
+                                class="text-blue-600 font-bold uppercase text-[10px] tracking-widest hover:underline">
+                                [ EDITAR ]
+                            </button>
+
+                            <button onclick="eliminarMovimiento(${m.id})" 
+                                class="text-red-500 font-bold uppercase text-[10px] tracking-widest hover:underline">
+                                [ ELIMINAR ]
+                            </button>
                         </div>
                     </td>
                 </tr>`;
         });
 
-        // Actualizar Dashboard
-        document.getElementById('dash-gastos').innerText = `$ ${totalGastos.toLocaleString()}`;
-        document.getElementById('dash-ventas').innerText = `$ ${totalVentas.toLocaleString()}`;
-        document.getElementById('dash-kilos').innerText = `${totalKilos.toLocaleString()} Kg`;
-        document.getElementById('dash-utilidad').innerText = `$ ${(totalVentas - totalGastos).toLocaleString()}`;
+        // Actualizar Dashboard con los IDs correctos
+        if(document.getElementById('dash-gastos')) document.getElementById('dash-gastos').innerText = `$ ${totalGastos.toLocaleString()}`;
+        if(document.getElementById('dash-ventas')) document.getElementById('dash-ventas').innerText = `$ ${totalVentas.toLocaleString()}`;
+        if(document.getElementById('dash-kilos')) document.getElementById('dash-kilos').innerText = `${totalKilos.toLocaleString()} Kg`;
+        if(document.getElementById('dash-utilidad')) document.getElementById('dash-utilidad').innerText = `$ ${(totalVentas - totalGastos).toLocaleString()}`;
 
-        // Forzar que el filtro se ejecute para mostrar todo lo "Lote 3"
         filtrarTabla();
 
     } catch (err) {
-        console.error("Error:", err);
+        console.error("Error al cargar historial:", err);
     }
 }
 // 5. REGISTRAR MOVIMIENTO
@@ -491,4 +498,51 @@ function calcularResumenFiltrado() {
     document.getElementById('dash-ventas').innerText = `$ ${ingresos.toLocaleString()}`;
     document.getElementById('dash-gastos').innerText = `$ ${egresos.toLocaleString()}`;
     document.getElementById('dash-utilidad').innerText = `$ ${utilidad.toLocaleString()}`;
+}
+
+// 1. Función para abrir el modal con los datos actuales
+function abrirEditar(id, fecha, monto, kilos, nota) {
+    document.getElementById('edit_id').value = id;
+    document.getElementById('edit_fecha').value = fecha;
+    document.getElementById('edit_monto').value = monto;
+    document.getElementById('edit_kilos').value = kilos;
+    document.getElementById('edit_nota').value = nota;
+    
+    const modal = document.getElementById('modal-editar');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+// 2. Función para cerrar el modal
+function cerrarModal() {
+    const modal = document.getElementById('modal-editar');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+// 3. Función para enviar la actualización a la Base de Datos
+async function actualizarMovimiento() {
+    const id = document.getElementById('edit_id').value;
+    const data = {
+        fecha: document.getElementById('edit_fecha').value,
+        monto: document.getElementById('edit_monto').value,
+        kilos: document.getElementById('edit_kilos').value,
+        nota: document.getElementById('edit_nota').value
+    };
+
+    try {
+        const res = await fetch(`/api/historial/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            Swal.fire('¡Actualizado!', 'El movimiento ha sido modificado.', 'success');
+            cerrarModal();
+            actualizarTodo(); // Recarga la tabla y el dashboard
+        }
+    } catch (err) {
+        Swal.fire('Error', 'No se pudo actualizar el registro', 'error');
+    }
 }
