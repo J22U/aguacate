@@ -72,49 +72,41 @@ async function cargarHistorial() {
             const colorMonto = esVenta ? 'text-green-600' : 'text-red-600';
             const simbolo = esVenta ? '+' : '-';
 
+            // Mantenemos tu lógica de descripción
+            const textoDesc = m.descripcion || '';
+
             tabla.innerHTML += `
                 <tr onclick="toggleDetalle(${index})" class="cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-100">
                     <td class="px-8 py-4">
                         <p class="font-bold text-slate-700">${fechaFormateada}</p>
-                        <p class="text-[10px] text-slate-400 uppercase font-black">Lote ${m.lote_id || '1'}</p>
+                        <p class="text-[10px] text-slate-400 uppercase font-black">Lote ${m.lote_id || ''}</p>
                     </td>
                     <td class="px-8 py-4">
-                        <span class="${esVenta ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} px-2 py-0.5 rounded-full text-[9px] font-black uppercase">
+                        <span class="${esVenta ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} px-2 py-0.5 rounded-full text-[9px] font-black uppercase mr-2">
                             ${m.tipo.replace('_', ' ')}
                         </span>
+                        <span class="text-slate-600 font-medium">${textoDesc}</span>
                     </td>
                     <td class="px-8 py-4 text-right font-black ${colorMonto}">
                         ${simbolo} ${formatMoney(m.monto)}
-                        <i id="icon-${index}" class="fa-solid fa-chevron-down ml-2 text-slate-300 text-xs transition-transform"></i>
                     </td>
                 </tr>
                 
-                <tr id="detalle-${index}" class="hidden bg-slate-50/50">
-                    <td colspan="3" class="px-8 py-4 border-b border-slate-100">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <p class="text-[10px] uppercase text-slate-400 font-bold">Descripción</p>
-                                <p class="text-slate-600 text-sm">${m.descripcion || 'Sin descripción'}</p>
-                            </div>
-                            <div class="text-right">
-                                ${m.kilos > 0 ? `
-                                    <p class="text-[10px] uppercase text-slate-400 font-bold">Cantidad</p>
-                                    <p class="text-slate-600 text-sm font-bold">${m.kilos.toLocaleString()} Kg</p>
-                                ` : ''}
-                                <button onclick="eliminarMovimiento(${m.id})" class="mt-2 text-red-400 hover:text-red-600 text-xs font-bold uppercase">
-                                    <i class="fa-solid fa-trash-can mr-1"></i> Eliminar
-                                </button>
-                            </div>
+                <tr id="detalle-${index}" class="hidden bg-slate-50">
+                    <td colspan="3" class="px-8 py-2 border-b border-slate-100 text-center">
+                        <div class="flex justify-around items-center">
+                            ${m.kilos > 0 ? `<span class="text-xs font-bold text-slate-500 underline">Cantidad: ${m.kilos} Kg</span>` : ''}
+                            <button onclick="eliminarMovimiento(${m.id})" class="text-red-500 text-[10px] font-black uppercase tracking-widest hover:text-red-700">
+                                [ ELIMINAR REGISTRO ]
+                            </button>
                         </div>
                     </td>
-                </tr>
-            `;
+                </tr>`;
         });
 
-        actualizarDashKilos(movimientos); // Función opcional para sumar kilos
-
+        filtrarTabla();
     } catch (err) {
-        console.error("Error cargando historial:", err);
+        console.error("Error:", err);
     }
 }
 

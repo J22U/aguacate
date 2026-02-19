@@ -219,20 +219,19 @@ function cerrarSesion() {
     });
 }
 
-function toggleDetalle(index) {
-    const detalle = document.getElementById(`detalle-${index}`);
-    const icono = document.getElementById(`icon-${index}`);
+function toggleHistorialCompleto() {
+    const contenedor = document.getElementById('contenedor-historial');
+    const flecha = document.getElementById('flecha-historial');
     
-    // Toggle de la clase hidden
-    const estaOculto = detalle.classList.contains('hidden');
-    
-    // Cerramos todos los demás (opcional, para efecto acordeón único)
-    document.querySelectorAll('[id^="detalle-"]').forEach(el => el.classList.add('hidden'));
-    document.querySelectorAll('[id^="icon-"]').forEach(el => el.classList.remove('rotate-180'));
-
-    if (estaOculto) {
-        detalle.classList.remove('hidden');
-        icono.classList.add('rotate-180');
+    // Si está oculto lo muestra, si está visible lo oculta
+    if (contenedor.classList.contains('hidden')) {
+        contenedor.classList.remove('hidden');
+        flecha.classList.add('rotate-180');
+        // Opcional: Cargar los datos justo cuando se abre
+        cargarHistorial(); 
+    } else {
+        contenedor.classList.add('hidden');
+        flecha.classList.remove('rotate-180');
     }
 }
 
