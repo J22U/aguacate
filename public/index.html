@@ -6,7 +6,7 @@
     <title>Finca Bella Vista - Gestión Agrícola</title>
     
     <script>
-        // 1. EL GUARDIÁN Y BLOQUEO DE HISTORIAL
+        // 1. EL GUARDIÁN
         if (localStorage.getItem('auth_finca') !== 'true') {
             window.location.replace('/');
         }
@@ -42,15 +42,19 @@
             });
         }
 
-        // 3. FUNCIÓN PARA DESPLEGAR EL HISTORIAL COMPLETO
+        // 3. FUNCIÓN TOGGLE MEJORADA (No afecta los cálculos)
         function toggleHistorial() {
             const contenido = document.getElementById('historial-desplegable');
             const icono = document.getElementById('icono-flecha');
-            if (contenido.classList.contains('hidden')) {
+            const estaOculto = contenido.style.display === 'none' || contenido.classList.contains('hidden');
+
+            if (estaOculto) {
                 contenido.classList.remove('hidden');
+                contenido.style.display = 'block';
                 icono.classList.add('rotate-180');
             } else {
                 contenido.classList.add('hidden');
+                contenido.style.display = 'none';
                 icono.classList.remove('rotate-180');
             }
         }
@@ -73,7 +77,6 @@
     <header class="bg-green-900 text-white shadow-2xl sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <h1 class="text-xl font-black uppercase">Control<span class="text-lime-400 font-light italic ml-1">Aguacate</span></h1>
-            
             <div class="flex items-center gap-4">
                 <div id="current-date" class="hidden md:block text-[10px] font-medium text-green-300 uppercase"></div>
                 <button onclick="cerrarSesion()" class="bg-red-500/20 hover:bg-red-600 text-red-200 hover:text-white px-3 py-1.5 rounded-lg border border-red-500/50 transition-all text-[10px] font-bold uppercase flex items-center gap-2">
@@ -113,46 +116,28 @@
                         <input type="text" id="t_labor" placeholder="Labor (Ej: Fumigación)" class="w-full p-4 bg-slate-50 border rounded-2xl focus:border-lime-500 outline-none">
                         <button onclick="guardarTrabajador()" class="w-full bg-green-900 text-white font-bold py-4 rounded-2xl hover:bg-green-800 shadow-lg transition-all">Registrar Personal</button>
                     </div>
-                    <div class="mt-6 border-t pt-4">
-                        <h3 class="text-xs font-black uppercase text-slate-400 mb-3 tracking-widest">Personal Activo</h3>
-                        <div id="lista-trabajadores" class="space-y-2 max-h-48 overflow-y-auto custom-scroll">
-                            <p class="text-xs text-slate-400 italic">Cargando personal...</p>
-                        </div>
-                    </div>
                 </section>
 
                 <section class="bg-white p-6 rounded-[2.5rem] shadow-sm border">
                     <h2 class="text-lg font-bold mb-5 flex items-center gap-3"><span class="w-1.5 h-6 bg-amber-500 rounded-full"></span> Registrar Movimiento</h2>
                     <div class="space-y-4">
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Fecha del Movimiento</label>
-                            <input type="date" id="mov_fecha" class="w-full p-3 rounded-xl border bg-slate-50 font-medium outline-none focus:border-amber-500">
-                        </div>
-
+                        <input type="date" id="mov_fecha" class="w-full p-3 rounded-xl border bg-slate-50 font-medium outline-none focus:border-amber-500">
                         <select id="mov_lote" class="w-full p-3 rounded-xl bg-slate-50 border font-bold text-green-800">
-                            <optgroup label="Cosechas 2026">
-                                <option value="1">🥑 Cosecha Principal 2026</option>
-                                <option value="2">🥑 Cosecha Traviesa 2026</option>
-                            </optgroup>
-                            <optgroup label="Cosechas Anteriores">
-                                <option value="3">📦 Histórico 2025</option>
-                            </optgroup>
+                            <option value="1">🥑 Cosecha Principal 2026</option>
+                            <option value="2">🥑 Cosecha Traviesa 2026</option>
+                            <option value="3">📦 Histórico 2025</option>
                         </select>
-                        
                         <div class="grid grid-cols-2 gap-3">
                             <input type="number" id="mov_monto" placeholder="Monto $" class="w-full p-3 rounded-xl border focus:border-amber-500 outline-none">
                             <input type="number" id="mov_kilos" placeholder="Kilos (Kg)" class="w-full p-3 rounded-xl border focus:border-amber-500 outline-none">
                         </div>
-                        
                         <select id="mov_tipo" class="w-full p-3 rounded-xl border font-bold text-slate-600">
                             <option value="gasto_insumo">🧪 Insumos</option>
                             <option value="gasto_jornal">🧑‍🌾 Jornal</option>
                             <option value="gasto_otros">💸 Otros Gastos</option> 
                             <option value="venta">🥑 Venta (+)</option>
                         </select>
-                        
-                        <textarea id="mov_nota" placeholder="Descripción (Ej: Transporte, Repuestos, etc.)" class="w-full p-3 rounded-xl border focus:border-amber-500 outline-none"></textarea>
-                        
+                        <textarea id="mov_nota" placeholder="Descripción" class="w-full p-3 rounded-xl border focus:border-amber-500 outline-none"></textarea>
                         <button onclick="registrarOperacion()" class="w-full bg-amber-500 text-white py-4 rounded-xl font-black uppercase text-xs hover:bg-amber-600 shadow-md transition-all">Registrar Operación</button>
                     </div>
                 </section>
@@ -167,49 +152,21 @@
                 <div id="historial-desplegable" class="hidden space-y-6">
                     <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border flex flex-wrap items-center gap-4">
                         <div class="flex-1 min-w-[200px]">
-                            <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Buscador General</label>
-                            <div class="relative">
-                                <i class="fa-solid fa-search absolute left-4 top-3.5 text-slate-300"></i>
-                                <input type="text" id="filter-busqueda" oninput="filtrarTabla()" placeholder="Buscar por nota o valor..." class="w-full pl-10 p-3 bg-slate-50 border rounded-xl outline-none focus:border-green-500 text-sm">
-                            </div>
+                            <input type="text" id="filter-busqueda" oninput="filtrarTabla()" placeholder="Buscar..." class="w-full p-3 bg-slate-50 border rounded-xl outline-none text-sm">
                         </div>
-                        <div>
-                            <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Filtrar Cosecha</label>
-                            <select id="filter-cosecha" onchange="filtrarTabla()" class="w-full p-3 bg-slate-50 border rounded-xl outline-none text-sm font-bold text-green-700">
-                                <option value="">🔎 Todas</option>
-                                <option value="1">Principal 2026</option>
-                                <option value="2">Traviesa 2026</option>
-                                <option value="3">Histórico 2025</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Filtrar Tipo</label>
-                            <select id="filter-tipo" onchange="filtrarTabla()" class="w-full p-3 bg-slate-50 border rounded-xl outline-none text-sm font-bold text-slate-600">
-                                <option value="">📂 Todos</option>
-                                <option value="gasto_insumo">🧪 Insumos</option>
-                                <option value="gasto_jornal">🧑‍🌾 Jornal</option>
-                                <option value="gasto_otros">💸 Otros Gastos</option> 
-                                <option value="venta">🥑 Venta</option>
-                            </select>
-                        </div>
-                        <input type="hidden" id="filter-fecha" onchange="filtrarTabla()">
-                        
-                        <button onclick="limpiarFiltros()" class="mt-5 p-3 text-slate-400 hover:text-red-500 transition-colors">
-                            <i class="fa-solid fa-eraser"></i>
-                        </button>
+                        <select id="filter-cosecha" onchange="filtrarTabla()" class="p-3 bg-slate-50 border rounded-xl text-sm font-bold">
+                            <option value="">🔎 Todas las Cosechas</option>
+                            <option value="1">Principal 2026</option>
+                            <option value="2">Traviesa 2026</option>
+                            <option value="3">Histórico 2025</option>
+                        </select>
                     </div>
 
                     <div class="bg-white rounded-[2.5rem] shadow-sm border overflow-hidden">
                         <div class="p-8 flex justify-between items-center">
-                            <div>
-                                <h2 class="text-xl font-bold">Historial de Movimientos</h2>
-                                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Cuentas del Cultivo</p>
-                            </div>
-                            <button onclick="actualizarTodo()" class="text-green-600 hover:rotate-180 transition-all duration-500">
-                                <i class="fa-solid fa-sync"></i>
-                            </button>
+                            <h2 class="text-xl font-bold">Movimientos Recientes</h2>
+                            <button onclick="actualizarTodo()" class="text-green-600"><i class="fa-solid fa-sync"></i></button>
                         </div>
-                        
                         <div class="overflow-x-auto">
                             <table class="w-full text-left">
                                 <thead class="bg-slate-50 text-[10px] font-black uppercase">
@@ -220,12 +177,12 @@
                                     </tr>
                                 </thead>
                                 <tbody id="tabla-movimientos" class="divide-y text-sm">
-                                </tbody>
+                                    </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-                </div>
+            </div>
         </div>
     </main>
     <script src="js/main.js"></script>
