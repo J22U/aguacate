@@ -523,11 +523,18 @@ function cerrarModal() {
 // 3. Función para enviar la actualización a la Base de Datos
 async function actualizarMovimiento() {
     const id = document.getElementById('edit_id').value;
+    
+    // Verificación de seguridad para evitar el error de undefined
+    if (!id || id === 'undefined') {
+        Swal.fire('Error', 'No se encontró el ID del movimiento', 'error');
+        return;
+    }
+
     const data = {
         fecha: document.getElementById('edit_fecha').value,
         monto: document.getElementById('edit_monto').value,
         kilos: document.getElementById('edit_kilos').value,
-        nota: document.getElementById('edit_nota').value
+        descripcion: document.getElementById('edit_nota').value // CAMBIADO: 'nota' por 'descripcion'
     };
 
     try {
@@ -538,12 +545,28 @@ async function actualizarMovimiento() {
         });
 
         if (res.ok) {
-            Swal.fire('¡Actualizado!', 'El movimiento ha sido modificado.', 'success');
+            Swal.fire({
+                title: '¡Actualizado!',
+                text: 'El movimiento ha sido modificado y los kilos recalculados.',
+                icon: 'success',
+                confirmButtonColor: '#166534'
+            });
             cerrarModal();
-            actualizarTodo(); // Recarga la tabla y el dashboard
+            
+            // Importante: Asegúrate de que actualizarTodo() llame a cargarHistorial()
+            // para que los kilos se sumen de nuevo en el Dashboard.
+            if (typeof actualizarTodo === 'function') {
+                actualizarTodo(); 
+            } else {
+                cargarHistorial();
+            }
+        } else {
+            const errorServer = await res.json();
+            Swal.fire('Error', errorServer.error || 'Error en el servidor', 'error');
         }
     } catch (err) {
-        Swal.fire('Error', 'No se pudo actualizar el registro', 'error');
+        console.error(err);
+        Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
     }
 }
 
