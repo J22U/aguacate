@@ -64,51 +64,54 @@ async function cargarHistorial() {
         const tabla = document.getElementById('tabla-movimientos');
         tabla.innerHTML = '';
         
-        let totalKilos = 0;
-
         if (!Array.isArray(movimientos)) return;
 
-        movimientos.forEach(m => {
+        movimientos.forEach((m, index) => {
             const esVenta = m.tipo === 'venta';
-            
-            if (esVenta && m.kilos) {
-                totalKilos += parseFloat(m.kilos);
-            }
-
             const fechaFormateada = m.fecha ? new Date(m.fecha).toLocaleDateString('es-CO', {timeZone: 'UTC'}) : 'S/F';
             const colorMonto = esVenta ? 'text-green-600' : 'text-red-600';
             const simbolo = esVenta ? '+' : '-';
 
-            // USAMOS EL NOMBRE EXACTO DE TU IMAGEN: descripcion
-            const textoDesc = m.descripcion || '';
-
             tabla.innerHTML += `
-                <tr data-tipo="${m.tipo}" 
-                    data-lote="${m.lote_id || ''}" 
-                    data-monto="${m.monto}" 
-                    data-kilos="${m.kilos || 0}" 
-                    class="hover:bg-slate-50 transition-colors border-b border-slate-100">
+                <tr onclick="toggleDetalle(${index})" class="cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-100">
                     <td class="px-8 py-4">
                         <p class="font-bold text-slate-700">${fechaFormateada}</p>
-                        <p class="text-[10px] text-slate-400 uppercase font-black">Lote ${m.lote_id || ''}</p>
+                        <p class="text-[10px] text-slate-400 uppercase font-black">Lote ${m.lote_id || '1'}</p>
                     </td>
                     <td class="px-8 py-4">
-                        <span class="${esVenta ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} px-2 py-0.5 rounded-full text-[9px] font-black uppercase mr-2">
+                        <span class="${esVenta ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} px-2 py-0.5 rounded-full text-[9px] font-black uppercase">
                             ${m.tipo.replace('_', ' ')}
                         </span>
-                        <span class="text-slate-600 font-medium">${textoDesc}</span>
-                        ${m.kilos > 0 ? `<b class="ml-2 text-slate-400 text-xs">(${m.kilos} Kg)</b>` : ''}
                     </td>
                     <td class="px-8 py-4 text-right font-black ${colorMonto}">
                         ${simbolo} ${formatMoney(m.monto)}
+                        <i id="icon-${index}" class="fa-solid fa-chevron-down ml-2 text-slate-300 text-xs transition-transform"></i>
                     </td>
-                </tr>`;
+                </tr>
+                
+                <tr id="detalle-${index}" class="hidden bg-slate-50/50">
+                    <td colspan="3" class="px-8 py-4 border-b border-slate-100">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[10px] uppercase text-slate-400 font-bold">Descripción</p>
+                                <p class="text-slate-600 text-sm">${m.descripcion || 'Sin descripción'}</p>
+                            </div>
+                            <div class="text-right">
+                                ${m.kilos > 0 ? `
+                                    <p class="text-[10px] uppercase text-slate-400 font-bold">Cantidad</p>
+                                    <p class="text-slate-600 text-sm font-bold">${m.kilos.toLocaleString()} Kg</p>
+                                ` : ''}
+                                <button onclick="eliminarMovimiento(${m.id})" class="mt-2 text-red-400 hover:text-red-600 text-xs font-bold uppercase">
+                                    <i class="fa-solid fa-trash-can mr-1"></i> Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `;
         });
 
-        const dashKilos = document.getElementById('dash-kilos');
-        if(dashKilos) dashKilos.innerText = `${totalKilos.toLocaleString()} Kg`;
-
-        filtrarTabla();
+        actualizarDashKilos(movimientos); // Función opcional para sumar kilos
 
     } catch (err) {
         console.error("Error cargando historial:", err);

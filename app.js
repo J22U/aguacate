@@ -198,11 +198,6 @@ app.put('/api/trabajadores/:id', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor funcionando en puerto ${PORT}`);
-});
-
 function cerrarSesion() {
     Swal.fire({
         title: '¿Cerrar sesión?',
@@ -223,3 +218,25 @@ function cerrarSesion() {
         }
     });
 }
+
+function toggleDetalle(index) {
+    const detalle = document.getElementById(`detalle-${index}`);
+    const icono = document.getElementById(`icon-${index}`);
+    
+    // Toggle de la clase hidden
+    const estaOculto = detalle.classList.contains('hidden');
+    
+    // Cerramos todos los demás (opcional, para efecto acordeón único)
+    document.querySelectorAll('[id^="detalle-"]').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('[id^="icon-"]').forEach(el => el.classList.remove('rotate-180'));
+
+    if (estaOculto) {
+        detalle.classList.remove('hidden');
+        icono.classList.add('rotate-180');
+    }
+}
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Servidor funcionando en puerto ${PORT}`);
+});
