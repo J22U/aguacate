@@ -57,6 +57,7 @@ async function cargarResumen() {
 }
 
 // 4. CARGAR HISTORIAL Y CÁLCULO DE KILOS
+// 4. CARGAR HISTORIAL Y CÁLCULO DE KILOS (CORREGIDO)
 async function cargarHistorial() {
     try {
         const res = await fetch('/api/historial');
@@ -71,12 +72,16 @@ async function cargarHistorial() {
             const fechaFormateada = m.fecha ? new Date(m.fecha).toLocaleDateString('es-CO', {timeZone: 'UTC'}) : 'S/F';
             const colorMonto = esVenta ? 'text-green-600' : 'text-red-600';
             const simbolo = esVenta ? '+' : '-';
-
-            // Mantenemos tu lógica de descripción
             const textoDesc = m.descripcion || '';
 
+            // AGREGAMOS LOS ATRIBUTOS DATA PARA QUE EL FILTRO LOS LEA
             tabla.innerHTML += `
-                <tr onclick="toggleDetalle(${index})" class="cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-100">
+                <tr onclick="toggleDetalle(${index})" 
+                    data-lote="${m.lote_id}" 
+                    data-tipo="${m.tipo}" 
+                    data-monto="${m.monto}" 
+                    data-kilos="${m.kilos || 0}"
+                    class="cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-100">
                     <td class="px-8 py-4">
                         <p class="font-bold text-slate-700">${fechaFormateada}</p>
                         <p class="text-[10px] text-slate-400 uppercase font-black">Lote ${m.lote_id || ''}</p>
@@ -104,12 +109,12 @@ async function cargarHistorial() {
                 </tr>`;
         });
 
-        filtrarTabla();
+        // IMPORTANTE: Llamamos al filtro para que procese los datos recién inyectados
+        filtrarTabla(); 
     } catch (err) {
-        console.error("Error:", err);
+        console.error("Error cargando historial:", err);
     }
 }
-
 // 5. REGISTRAR MOVIMIENTO
 async function registrarOperacion() {
     // 1. CAPTURA DE VALORES
