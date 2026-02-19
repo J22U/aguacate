@@ -22,8 +22,9 @@
             }
             // Forzamos limpieza de filtros al recargar para mostrar TODO
             if(document.getElementById('filter-busqueda')) document.getElementById('filter-busqueda').value = '';
-            if(document.getElementById('filter-cosecha')) document.getElementById('filter-cosecha').value = '';
-            if(document.getElementById('filter-tipo')) document.getElementById('filter-tipo').value = '';
+    if(document.getElementById('filter-cosecha')) document.getElementById('filter-cosecha').value = '';
+    if(document.getElementById('filter-tipo')) document.getElementById('filter-tipo').value = '';
+    if(document.getElementById('filter-fecha')) document.getElementById('filter-fecha').value = ''; // AÑADE ESTA LÍNEA
             
             if (typeof actualizarTodo === 'function') actualizarTodo();
         }

@@ -57,31 +57,34 @@ async function cargarResumen() {
 }
 
 // 4. CARGAR HISTORIAL Y CÁLCULO DE KILOS
-// 4. CARGAR HISTORIAL Y CÁLCULO DE KILOS (CORREGIDO)
 async function cargarHistorial() {
     try {
         const res = await fetch('/api/historial');
-        const movimientos = await res.json();
+        let movimientos = await res.json();
         const tabla = document.getElementById('tabla-movimientos');
         tabla.innerHTML = '';
         
         if (!Array.isArray(movimientos)) return;
 
+        // --- AGREGAR ESTA LÍNEA PARA ORDENAR ---
+        // Ordena de la fecha más reciente a la más antigua
+        movimientos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
         movimientos.forEach((m, index) => {
             const esVenta = m.tipo === 'venta';
-            const fechaFormateada = m.fecha ? new Date(m.fecha).toLocaleDateString('es-CO', {timeZone: 'UTC'}) : 'S/F';
+            // Ajuste de zona horaria para que no te cambie el día por uno antes
+            const fechaObj = new Date(m.fecha);
+            const fechaFormateada = m.fecha ? new Date(fechaObj.getTime() + fechaObj.getTimezoneOffset() * 60000).toLocaleDateString('es-CO') : 'S/F';
+            
             const colorMonto = esVenta ? 'text-green-600' : 'text-red-600';
             const simbolo = esVenta ? '+' : '-';
-            const textoDesc = m.descripcion || '';
 
-            // AGREGAMOS LOS ATRIBUTOS DATA PARA QUE EL FILTRO LOS LEA
             tabla.innerHTML += `
                 <tr onclick="toggleDetalle(${index})" 
                     data-lote="${m.lote_id}" 
                     data-tipo="${m.tipo}" 
                     data-monto="${m.monto}" 
-                    data-kilos="${m.kilos || 0}"
-                    class="cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-100">
+                    class="cursor-pointer hover:bg-slate-50 border-b border-slate-100">
                     <td class="px-8 py-4">
                         <p class="font-bold text-slate-700">${fechaFormateada}</p>
                         <p class="text-[10px] text-slate-400 uppercase font-black">Lote ${m.lote_id || ''}</p>
@@ -90,26 +93,22 @@ async function cargarHistorial() {
                         <span class="${esVenta ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} px-2 py-0.5 rounded-full text-[9px] font-black uppercase mr-2">
                             ${m.tipo.replace('_', ' ')}
                         </span>
-                        <span class="text-slate-600 font-medium">${textoDesc}</span>
+                        <span class="text-slate-600 font-medium">${m.descripcion || ''}</span>
                     </td>
                     <td class="px-8 py-4 text-right font-black ${colorMonto}">
                         ${simbolo} ${formatMoney(m.monto)}
                     </td>
                 </tr>
-                
                 <tr id="detalle-${index}" class="hidden bg-slate-50">
-                    <td colspan="3" class="px-8 py-2 border-b border-slate-100 text-center">
+                    <td colspan="3" class="px-8 py-2 text-center">
                         <div class="flex justify-around items-center">
-                            ${m.kilos > 0 ? `<span class="text-xs font-bold text-slate-500 underline">Cantidad: ${m.kilos} Kg</span>` : ''}
-                            <button onclick="eliminarMovimiento(${m.id})" class="text-red-500 text-[10px] font-black uppercase tracking-widest hover:text-red-700">
-                                [ ELIMINAR REGISTRO ]
-                            </button>
+                            ${m.kilos > 0 ? `<span class="text-xs font-bold text-slate-500">Cantidad: ${m.kilos} Kg</span>` : ''}
+                            <button onclick="eliminarMovimiento(${m.id})" class="text-red-500 text-[10px] font-black uppercase">[ ELIMINAR ]</button>
                         </div>
                     </td>
                 </tr>`;
         });
 
-        // IMPORTANTE: Llamamos al filtro para que procese los datos recién inyectados
         filtrarTabla(); 
     } catch (err) {
         console.error("Error cargando historial:", err);
