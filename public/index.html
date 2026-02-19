@@ -49,7 +49,6 @@
         function toggleHistorial() {
             const contenido = document.getElementById('historial-desplegable');
             const icono = document.getElementById('icono-flecha');
-            // Quitamos 'hidden' y usamos display para evitar conflictos con el buscador
             if (contenido.style.display === 'none' || contenido.classList.contains('hidden')) {
                 contenido.style.display = 'block';
                 contenido.classList.remove('hidden');
@@ -110,7 +109,13 @@
                         <input type="text" id="t_nombre" placeholder="Nombre" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none">
                         <input type="text" id="t_documento" placeholder="Cédula" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none">
                         <input type="text" id="t_labor" placeholder="Labor" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none">
-                        <button onclick="guardarTrabajador()" class="w-full bg-green-900 text-white font-bold py-4 rounded-2xl">Registrar Personal</button>
+                        <button onclick="guardarTrabajador()" class="w-full bg-green-900 text-white font-bold py-4 rounded-2xl mb-4">Registrar Personal</button>
+                    </div>
+
+                    <div class="mt-6 border-t pt-4">
+                        <h3 class="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest">Personal Registrado</h3>
+                        <div id="lista-trabajadores" class="space-y-2 max-h-40 overflow-y-auto custom-scroll">
+                            </div>
                     </div>
                 </section>
 
@@ -189,7 +194,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="tabla-movimientos" class="divide-y text-sm">
-                                    </tbody>
+                                </tbody>
                             </table>
                         </div>
                     </div>
