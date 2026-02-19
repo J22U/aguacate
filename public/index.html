@@ -40,11 +40,19 @@
             });
         }
 
+        // CORRECCIÓN: Usamos style.display para que main.js no pierda la referencia de los datos
         function toggleHistorial() {
             const contenido = document.getElementById('historial-desplegable');
             const icono = document.getElementById('icono-flecha');
-            contenido.classList.toggle('hidden');
-            icono.classList.toggle('rotate-180');
+            
+            if (contenido.style.display === 'none' || contenido.classList.contains('hidden')) {
+                contenido.style.display = 'block';
+                contenido.classList.remove('hidden');
+                icono.classList.add('rotate-180');
+            } else {
+                contenido.style.display = 'none';
+                icono.classList.remove('rotate-180');
+            }
         }
     </script>
 
@@ -171,7 +179,7 @@
                     <i id="icono-flecha" class="fa-solid fa-chevron-down transition-transform duration-300"></i>
                 </button>
 
-                <div id="historial-desplegable" class="hidden">
+                <div id="historial-desplegable" style="display: none;">
                     <div class="bg-white rounded-[2.5rem] shadow-sm border overflow-hidden">
                         <div class="p-8 flex justify-between items-center">
                             <div>
