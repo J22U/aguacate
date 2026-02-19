@@ -84,20 +84,24 @@ async function cargarHistorial() {
             const kilos = parseFloat(m.kilos) || 0;
 
             // Sumas para Dashboard
+            // Sumas para Dashboard
             if (esVenta) {
                 totalVentas += monto;
-                totalKilos += kilos; // Ahora sí entrará aquí con seguridad
+                totalKilos += kilos;
             } else {
                 totalGastos += monto;
             }
 
-            // Limpieza de fecha
-            const soloFecha = m.fecha.split(' ')[0]; 
+            // --- ESTA ES LA PARTE NUEVA ---
+            const fechaObjeto = new Date(m.fecha);
+            const soloFecha = fechaObjeto.toISOString().split('T')[0];
             const fechaMostrar = soloFecha; 
+            // ------------------------------
+
             const descSegura = (m.descripcion || 'Sin descripción').replace(/'/g, "\\'");
 
             tabla.innerHTML += `
-                <tr onclick="toggleDetalle(${index})" 
+                <tr onclick="toggleDetalle(${index})" ... 
                     data-lote="${loteAsignado}" 
                     data-tipo="${m.tipo}" 
                     data-monto="${monto}" 
