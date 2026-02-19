@@ -112,18 +112,17 @@ app.get('/api/historial', async (req, res) => {
                 fecha, 
                 tipo, 
                 ISNULL(monto, 0) as monto, 
-                ISNULL(kilos, 0) as kilos, -- ¡IMPORTANTE! Agregamos esta columna
-                ISNULL(descripcion, '') as nota, 
+                ISNULL(kilos, 0) as kilos,
+                ISNULL(descripcion, '') as descripcion, -- CAMBIAMOS 'as nota' por 'as descripcion'
                 ISNULL(lote_id, 1) as lote_id 
             FROM movimientos 
-            ORDER BY fecha DESC, id DESC -- Agregamos id DESC para ver lo último que se creó
+            ORDER BY fecha DESC, id DESC
         `);
         res.json(result.recordset || []);
     } catch (err) {
         console.error("Error en historial:", err.message);
         res.status(500).json({ error: err.message });
     }
-    // AQUÍ NO VA NADA. Borramos cargarResumen();
 });
 
 // 4. REGISTRAR TRABAJADOR

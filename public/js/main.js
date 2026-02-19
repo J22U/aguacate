@@ -368,39 +368,30 @@ async function prepararEdicion(id, nombre, documento, labor) {
 }
 
 function filtrarTabla() {
-    // 1. Capturamos los valores de los filtros
     const busqueda = document.getElementById('filter-busqueda').value.toLowerCase().trim();
     const cosecha = document.getElementById('filter-cosecha').value.toString().trim();
     const tipo = document.getElementById('filter-tipo').value.toString().trim();
     const filas = document.querySelectorAll('#tabla-movimientos tr');
 
-    // Variables para el resumen dinámico
     let sumInversion = 0;
     let sumVentas = 0;
     let sumKilos = 0;
 
     filas.forEach(fila => {
-        // 2. Extraemos datos de los atributos data-
         const fLote = (fila.getAttribute('data-lote') || "").toString().trim();
         const fTipo = (fila.getAttribute('data-tipo') || "").toString().trim();
         const fMonto = parseFloat(fila.getAttribute('data-monto')) || 0;
         const fKilos = parseFloat(fila.getAttribute('data-kilos')) || 0;
         
-        // CORRECCIÓN AQUÍ: Obtenemos el texto de forma más limpia
+        // Usamos textContent para capturar la descripción recién inyectada
         const fTexto = fila.textContent.toLowerCase();
 
-        // 3. Lógica de triple coincidencia
-        // Si no hay nada escrito en búsqueda, coincide es true. 
-        // Si hay algo, verificamos si existe dentro del texto de la fila.
         const coincideBusqueda = busqueda === "" || fTexto.includes(busqueda);
         const coincideCosecha = cosecha === "" || fLote === cosecha;
         const coincideTipo = tipo === "" || fTipo === tipo;
 
-        // 4. Mostrar u ocultar con lógica de seguridad
         if (coincideBusqueda && coincideCosecha && coincideTipo) {
-            fila.style.display = ''; // Usar cadena vacía permite que el CSS original tome el mando
-            
-            // Sumamos al resumen solo lo que es visible
+            fila.style.display = '';
             if (fTipo === 'venta') {
                 sumVentas += fMonto;
                 sumKilos += fKilos;
@@ -412,34 +403,16 @@ function filtrarTabla() {
         }
     });
 
-    // 5. Actualizamos los cuadros superiores (Dashboard)
     const utilidad = sumVentas - sumInversion;
-    
-    // Función auxiliar para formatear dinero si formatMoney falla
-    const format = (v) => typeof formatMoney === 'function' ? formatMoney(v) : `$ ${v.toLocaleString()}`;
-
-    if (document.getElementById('dash-gastos')) 
-        document.getElementById('dash-gastos').innerText = format(sumInversion);
-    
-    if (document.getElementById('dash-ventas')) 
-        document.getElementById('dash-ventas').innerText = format(sumVentas);
-    
-    if (document.getElementById('dash-kilos')) 
-        document.getElementById('dash-kilos').innerText = `${sumKilos.toLocaleString()} Kg`;
+    document.getElementById('dash-gastos').innerText = formatMoney(sumInversion);
+    document.getElementById('dash-ventas').innerText = formatMoney(sumVentas);
+    document.getElementById('dash-kilos').innerText = `${sumKilos.toLocaleString()} Kg`;
     
     const utilElement = document.getElementById('dash-utilidad');
     if (utilElement) {
-        utilElement.innerText = format(utilidad);
+        utilElement.innerText = formatMoney(utilidad);
         utilElement.style.color = utilidad < 0 ? '#ff9999' : '#ffffff';
     }
-}
-
-// Función auxiliar para limpiar filtros
-function limpiarFiltros() {
-    document.getElementById('filter-busqueda').value = "";
-    document.getElementById('filter-cosecha').value = "";
-    document.getElementById('filter-tipo').value = "";
-    filtrarTabla();
 }
 
 // Función para limpiar los buscadores y restablecer la tabla
