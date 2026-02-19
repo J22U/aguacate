@@ -386,16 +386,20 @@ function filtrarTabla() {
         const fTipo = (fila.getAttribute('data-tipo') || "").toString().trim();
         const fMonto = parseFloat(fila.getAttribute('data-monto')) || 0;
         const fKilos = parseFloat(fila.getAttribute('data-kilos')) || 0;
-        const fTexto = fila.innerText.toLowerCase();
+        
+        // CORRECCIÓN AQUÍ: Obtenemos el texto de forma más limpia
+        const fTexto = fila.textContent.toLowerCase();
 
         // 3. Lógica de triple coincidencia
+        // Si no hay nada escrito en búsqueda, coincide es true. 
+        // Si hay algo, verificamos si existe dentro del texto de la fila.
         const coincideBusqueda = busqueda === "" || fTexto.includes(busqueda);
         const coincideCosecha = cosecha === "" || fLote === cosecha;
         const coincideTipo = tipo === "" || fTipo === tipo;
 
-        // 4. Mostrar u ocultar
+        // 4. Mostrar u ocultar con lógica de seguridad
         if (coincideBusqueda && coincideCosecha && coincideTipo) {
-            fila.style.display = '';
+            fila.style.display = ''; // Usar cadena vacía permite que el CSS original tome el mando
             
             // Sumamos al resumen solo lo que es visible
             if (fTipo === 'venta') {
@@ -412,18 +416,21 @@ function filtrarTabla() {
     // 5. Actualizamos los cuadros superiores (Dashboard)
     const utilidad = sumVentas - sumInversion;
     
+    // Función auxiliar para formatear dinero si formatMoney falla
+    const format = (v) => typeof formatMoney === 'function' ? formatMoney(v) : `$ ${v.toLocaleString()}`;
+
     if (document.getElementById('dash-gastos')) 
-        document.getElementById('dash-gastos').innerText = formatMoney(sumInversion);
+        document.getElementById('dash-gastos').innerText = format(sumInversion);
     
     if (document.getElementById('dash-ventas')) 
-        document.getElementById('dash-ventas').innerText = formatMoney(sumVentas);
+        document.getElementById('dash-ventas').innerText = format(sumVentas);
     
     if (document.getElementById('dash-kilos')) 
         document.getElementById('dash-kilos').innerText = `${sumKilos.toLocaleString()} Kg`;
     
     const utilElement = document.getElementById('dash-utilidad');
     if (utilElement) {
-        utilElement.innerText = formatMoney(utilidad);
+        utilElement.innerText = format(utilidad);
         utilElement.style.color = utilidad < 0 ? '#ff9999' : '#ffffff';
     }
 }
