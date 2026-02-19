@@ -219,19 +219,19 @@ function cerrarSesion() {
     });
 }
 
-function toggleHistorialCompleto() {
-    const contenedor = document.getElementById('contenedor-historial');
-    const flecha = document.getElementById('flecha-historial');
+function toggleHistorial() {
+    const contenido = document.getElementById('historial-desplegable');
+    const icono = document.getElementById('icono-flecha');
     
-    // Si está oculto lo muestra, si está visible lo oculta
-    if (contenedor.classList.contains('hidden')) {
-        contenedor.classList.remove('hidden');
-        flecha.classList.add('rotate-180');
-        // Opcional: Cargar los datos justo cuando se abre
-        cargarHistorial(); 
+    if (contenido.classList.contains('hidden') || contenido.style.display === 'none') {
+        contenido.style.display = 'block';
+        contenido.classList.remove('hidden');
+        icono.classList.add('rotate-180');
+        // Forzamos que se recalculen los filtros al abrir
+        if (typeof filtrarTabla === 'function') filtrarTabla();
     } else {
-        contenedor.classList.add('hidden');
-        flecha.classList.remove('rotate-180');
+        contenido.style.display = 'none';
+        icono.classList.remove('rotate-180');
     }
 }
 
