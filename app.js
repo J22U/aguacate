@@ -219,22 +219,6 @@ function cerrarSesion() {
     });
 }
 
-function toggleHistorial() {
-    const contenido = document.getElementById('historial-desplegable');
-    const icono = document.getElementById('icono-flecha');
-    
-    if (contenido.classList.contains('hidden') || contenido.style.display === 'none') {
-        contenido.style.display = 'block';
-        contenido.classList.remove('hidden');
-        icono.classList.add('rotate-180');
-        // Forzamos que se recalculen los filtros al abrir
-        if (typeof filtrarTabla === 'function') filtrarTabla();
-    } else {
-        contenido.style.display = 'none';
-        icono.classList.remove('rotate-180');
-    }
-}
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor funcionando en puerto ${PORT}`);

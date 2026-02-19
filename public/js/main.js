@@ -546,3 +546,32 @@ async function actualizarMovimiento() {
         Swal.fire('Error', 'No se pudo actualizar el registro', 'error');
     }
 }
+
+// Función para mostrar/ocultar los detalles de cada fila
+function toggleDetalle(index) {
+    const detalleRow = document.getElementById(`detalle-${index}`);
+    if (detalleRow) {
+        // Si está escondido lo muestra, si está visible lo esconde
+        if (detalleRow.classList.contains('hidden')) {
+            detalleRow.classList.remove('hidden');
+        } else {
+            detalleRow.classList.add('hidden');
+        }
+    }
+}
+
+function toggleHistorial() {
+    const contenido = document.getElementById('historial-desplegable');
+    const icono = document.getElementById('icono-flecha');
+    
+    if (contenido.classList.contains('hidden') || contenido.style.display === 'none') {
+        contenido.style.display = 'block';
+        contenido.classList.remove('hidden');
+        icono.classList.add('rotate-180');
+        // Forzamos que se recalculen los filtros al abrir
+        if (typeof filtrarTabla === 'function') filtrarTabla();
+    } else {
+        contenido.style.display = 'none';
+        icono.classList.remove('rotate-180');
+    }
+}
