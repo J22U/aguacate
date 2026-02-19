@@ -20,6 +20,12 @@
                     }
                 };
             }
+            // Forzamos limpieza de filtros al recargar para mostrar TODO
+            if(document.getElementById('filter-busqueda')) document.getElementById('filter-busqueda').value = '';
+            if(document.getElementById('filter-cosecha')) document.getElementById('filter-cosecha').value = '';
+            if(document.getElementById('filter-tipo')) document.getElementById('filter-tipo').value = '';
+            
+            if (typeof actualizarTodo === 'function') actualizarTodo();
         }
 
         function cerrarSesion() {
@@ -40,11 +46,10 @@
             });
         }
 
-        // CORRECCIÓN: Usamos style.display para que main.js no pierda la referencia de los datos
         function toggleHistorial() {
             const contenido = document.getElementById('historial-desplegable');
             const icono = document.getElementById('icono-flecha');
-            
+            // Quitamos 'hidden' y usamos display para evitar conflictos con el buscador
             if (contenido.style.display === 'none' || contenido.classList.contains('hidden')) {
                 contenido.style.display = 'block';
                 contenido.classList.remove('hidden');
@@ -65,20 +70,15 @@
         .card-gradient-harvest { background: linear-gradient(135deg, #d97706 0%, #92400e 100%); }
         .card-gradient-balance { background: linear-gradient(135deg, #059669 0%, #064e3b 100%); }
         .card-gradient-avocado { background: linear-gradient(135deg, #3f6212 0%, #166534 100%); }
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
     <header class="bg-green-900 text-white shadow-2xl sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <h1 class="text-xl font-black uppercase">Control<span class="text-lime-400 font-light italic ml-1">Aguacate</span></h1>
-            <div class="flex items-center gap-4">
-                <div id="current-date" class="hidden md:block text-[10px] font-medium text-green-300 uppercase"></div>
-                <button onclick="cerrarSesion()" class="bg-red-500/20 hover:bg-red-600 text-red-200 hover:text-white px-3 py-1.5 rounded-lg border border-red-500/50 transition-all text-[10px] font-bold uppercase flex items-center gap-2">
-                    <i class="fa-solid fa-power-off"></i> Salir
-                </button>
-            </div>
+            <button onclick="cerrarSesion()" class="bg-red-500/20 hover:bg-red-600 text-red-200 px-3 py-1.5 rounded-lg border border-red-500/50 text-[10px] font-bold uppercase">
+                <i class="fa-solid fa-power-off"></i> Salir
+            </button>
         </div>
     </header>
 
@@ -89,15 +89,15 @@
                 <h3 class="text-3xl font-black mt-2" id="dash-gastos">$ 0</h3>
             </div>
             <div class="card-gradient-harvest p-6 rounded-[2rem] shadow-xl">
-                <p class="text-xs font-bold uppercase opacity-80">Kilos Cosechados</p>
+                <p class="text-xs font-bold uppercase opacity-80">Kilos</p>
                 <h3 class="text-3xl font-black mt-2" id="dash-kilos">0 Kg</h3>
             </div>
             <div class="card-gradient-balance p-6 rounded-[2rem] shadow-xl">
-                <p class="text-xs font-bold uppercase opacity-80">Ventas Totales</p>
+                <p class="text-xs font-bold uppercase opacity-80">Ventas</p>
                 <h3 class="text-3xl font-black mt-2" id="dash-ventas">$ 0</h3>
             </div>
             <div class="card-gradient-avocado p-6 rounded-[2rem] shadow-xl">
-                <p class="text-xs font-bold uppercase opacity-80">Utilidad Neta</p>
+                <p class="text-xs font-bold uppercase opacity-80">Utilidad</p>
                 <h3 class="text-3xl font-black mt-2" id="dash-utilidad">$ 0</h3>
             </div>
         </div>
@@ -105,27 +105,27 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div class="lg:col-span-4 space-y-6">
                 <section class="bg-white p-6 rounded-[2.5rem] shadow-sm border">
-                    <h2 class="text-lg font-bold mb-5 flex items-center gap-3"><span class="w-1.5 h-6 bg-lime-600 rounded-full"></span> Registrar Trabajador</h2>
+                    <h2 class="text-lg font-bold mb-5 flex items-center gap-3"><span class="w-1.5 h-6 bg-lime-600 rounded-full"></span> Trabajador</h2>
                     <div class="space-y-3">
-                        <input type="text" id="t_nombre" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 border rounded-2xl focus:border-lime-500 outline-none">
-                        <input type="text" id="t_documento" placeholder="Cédula / Documento" class="w-full p-4 bg-slate-50 border rounded-2xl focus:border-lime-500 outline-none">
-                        <input type="text" id="t_labor" placeholder="Labor (Ej: Fumigación)" class="w-full p-4 bg-slate-50 border rounded-2xl focus:border-lime-500 outline-none">
-                        <button onclick="guardarTrabajador()" class="w-full bg-green-900 text-white font-bold py-4 rounded-2xl hover:bg-green-800 shadow-lg transition-all">Registrar Personal</button>
+                        <input type="text" id="t_nombre" placeholder="Nombre" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none">
+                        <input type="text" id="t_documento" placeholder="Cédula" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none">
+                        <input type="text" id="t_labor" placeholder="Labor" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none">
+                        <button onclick="guardarTrabajador()" class="w-full bg-green-900 text-white font-bold py-4 rounded-2xl">Registrar Personal</button>
                     </div>
                 </section>
 
                 <section class="bg-white p-6 rounded-[2.5rem] shadow-sm border">
-                    <h2 class="text-lg font-bold mb-5 flex items-center gap-3"><span class="w-1.5 h-6 bg-amber-500 rounded-full"></span> Registrar Movimiento</h2>
+                    <h2 class="text-lg font-bold mb-5 flex items-center gap-3"><span class="w-1.5 h-6 bg-amber-500 rounded-full"></span> Movimiento</h2>
                     <div class="space-y-4">
-                        <input type="date" id="mov_fecha" class="w-full p-3 rounded-xl border bg-slate-50 font-medium outline-none focus:border-amber-500">
+                        <input type="date" id="mov_fecha" class="w-full p-3 rounded-xl border bg-slate-50 outline-none">
                         <select id="mov_lote" class="w-full p-3 rounded-xl bg-slate-50 border font-bold text-green-800">
                             <option value="1">🥑 Cosecha Principal 2026</option>
                             <option value="2">🥑 Cosecha Traviesa 2026</option>
                             <option value="3">📦 Histórico 2025</option>
                         </select>
                         <div class="grid grid-cols-2 gap-3">
-                            <input type="number" id="mov_monto" placeholder="Monto $" class="w-full p-3 rounded-xl border focus:border-amber-500 outline-none">
-                            <input type="number" id="mov_kilos" placeholder="Kilos (Kg)" class="w-full p-3 rounded-xl border focus:border-amber-500 outline-none">
+                            <input type="number" id="mov_monto" placeholder="Monto $" class="w-full p-3 rounded-xl border outline-none">
+                            <input type="number" id="mov_kilos" placeholder="Kg" class="w-full p-3 rounded-xl border outline-none">
                         </div>
                         <select id="mov_tipo" class="w-full p-3 rounded-xl border font-bold text-slate-600">
                             <option value="gasto_insumo">🧪 Insumos</option>
@@ -133,33 +133,30 @@
                             <option value="gasto_otros">💸 Otros Gastos</option> 
                             <option value="venta">🥑 Venta (+)</option>
                         </select>
-                        <textarea id="mov_nota" placeholder="Descripción" class="w-full p-3 rounded-xl border focus:border-amber-500 outline-none"></textarea>
-                        <button onclick="registrarOperacion()" class="w-full bg-amber-500 text-white py-4 rounded-xl font-black uppercase text-xs hover:bg-amber-600 shadow-md transition-all">Registrar Operación</button>
+                        <textarea id="mov_nota" placeholder="Nota" class="w-full p-3 rounded-xl border outline-none"></textarea>
+                        <button onclick="registrarOperacion()" class="w-full bg-amber-500 text-white py-4 rounded-xl font-bold uppercase shadow-md">Registrar</button>
                     </div>
                 </section>
             </div>
 
             <div class="lg:col-span-8">
                 <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border mb-6 flex flex-wrap items-center gap-4">
-                    <div class="flex-1 min-w-[200px]">
-                        <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Buscador General</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-search absolute left-4 top-3.5 text-slate-300"></i>
-                            <input type="text" id="filter-busqueda" oninput="filtrarTabla()" placeholder="Buscar por nota o valor..." class="w-full pl-10 p-3 bg-slate-50 border rounded-xl outline-none focus:border-green-500 text-sm">
-                        </div>
+                    <div class="flex-1 min-w-[150px]">
+                        <label class="text-[10px] font-black uppercase text-slate-400">Buscador</label>
+                        <input type="text" id="filter-busqueda" oninput="filtrarTabla()" placeholder="Escribe para buscar..." class="w-full p-3 bg-slate-50 border rounded-xl outline-none text-sm">
                     </div>
                     <div>
-                        <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Filtrar Cosecha</label>
-                        <select id="filter-cosecha" onchange="filtrarTabla()" class="w-full p-3 bg-slate-50 border rounded-xl outline-none text-sm font-bold text-green-700">
-                            <option value="">🔎 Todas</option>
+                        <label class="text-[10px] font-black uppercase text-slate-400">Cosecha</label>
+                        <select id="filter-cosecha" onchange="filtrarTabla()" class="w-full p-3 bg-slate-50 border rounded-xl text-sm font-bold text-green-700">
+                            <option value="">🔎 Ver Todas</option>
                             <option value="1">Principal 2026</option>
                             <option value="2">Traviesa 2026</option>
                             <option value="3">Histórico 2025</option>
                         </select>
                     </div>
                     <div>
-                        <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Filtrar Tipo</label>
-                        <select id="filter-tipo" onchange="filtrarTabla()" class="w-full p-3 bg-slate-50 border rounded-xl outline-none text-sm font-bold text-slate-600">
+                        <label class="text-[10px] font-black uppercase text-slate-400">Tipo</label>
+                        <select id="filter-tipo" onchange="filtrarTabla()" class="w-full p-3 bg-slate-50 border rounded-xl text-sm font-bold text-slate-600">
                             <option value="">📂 Todos</option>
                             <option value="gasto_insumo">🧪 Insumos</option>
                             <option value="gasto_jornal">🧑‍🌾 Jornal</option>
@@ -167,28 +164,20 @@
                             <option value="venta">🥑 Venta</option>
                         </select>
                     </div>
-                    <input type="hidden" id="filter-fecha" onchange="filtrarTabla()">
-                    
-                    <button onclick="limpiarFiltros()" class="mt-5 p-3 text-slate-400 hover:text-red-500 transition-colors">
-                        <i class="fa-solid fa-eraser"></i>
-                    </button>
+                    <button onclick="limpiarFiltros()" class="mt-5 p-3 text-slate-400 hover:text-red-500"><i class="fa-solid fa-eraser"></i></button>
+                    <input type="hidden" id="filter-fecha">
                 </div>
 
                 <button onclick="toggleHistorial()" class="w-full bg-slate-800 text-white p-5 rounded-3xl font-bold uppercase tracking-widest hover:bg-slate-700 transition-all mb-6 flex justify-between items-center shadow-lg">
-                    <span><i class="fa-solid fa-list-ul mr-3 text-lime-400"></i> Ver Historial de Movimientos</span>
+                    <span><i class="fa-solid fa-list-ul mr-3 text-lime-400"></i> Lista de Movimientos</span>
                     <i id="icono-flecha" class="fa-solid fa-chevron-down transition-transform duration-300"></i>
                 </button>
 
                 <div id="historial-desplegable" style="display: none;">
                     <div class="bg-white rounded-[2.5rem] shadow-sm border overflow-hidden">
                         <div class="p-8 flex justify-between items-center">
-                            <div>
-                                <h2 class="text-xl font-bold">Movimientos Recientes</h2>
-                                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Cuentas del Cultivo</p>
-                            </div>
-                            <button onclick="actualizarTodo()" class="text-green-600 hover:rotate-180 transition-all duration-500">
-                                <i class="fa-solid fa-sync"></i>
-                            </button>
+                            <h2 class="text-xl font-bold">Registro Completo</h2>
+                            <button onclick="actualizarTodo()" class="text-green-600"><i class="fa-solid fa-sync"></i></button>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left">
@@ -200,7 +189,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="tabla-movimientos" class="divide-y text-sm">
-                                </tbody>
+                                    </tbody>
                             </table>
                         </div>
                     </div>
