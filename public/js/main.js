@@ -67,79 +67,77 @@ async function cargarHistorial() {
         if (!tabla) return;
         tabla.innerHTML = '';
         
-        if (!Array.isArray(movimientos)) return;
-
-        // 1. ORDENAR POR FECHA (Más reciente primero)
-        movimientos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-
-        // 2. REINICIAR CONTADORES PARA EL DASHBOARD
+        // Contadores para el Dashboard
         let totalGastos = 0;
         let totalVentas = 0;
         let totalKilos = 0;
 
+        // 1. ORDENAR POR FECHA (Descendente: lo nuevo arriba)
+        movimientos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
         movimientos.forEach((m, index) => {
+            // Reparación de Lote: Si está vacío en la BD, le ponemos "3" (Histórico)
+            const loteAsignado = m.lote_id || "3"; 
+            
             const esVenta = m.tipo === 'venta';
             const monto = parseFloat(m.monto) || 0;
             const kilos = parseFloat(m.kilos) || 0;
 
-            // Sumamos para el Dashboard ANTES de filtrar
+            // Sumas para Dashboard
             if (esVenta) {
                 totalVentas += monto;
-                totalKilos += kilos; // <--- AQUÍ RECUPERAMOS LOS KILOS
+                totalKilos += kilos;
             } else {
                 totalGastos += monto;
             }
 
-            // Formatear Fecha para mostrar (evitando error de un día menos)
-            const fechaObj = new Date(m.fecha);
-            const fechaLabel = m.fecha ? new Date(fechaObj.getTime() + fechaObj.getTimezoneOffset() * 60000).toLocaleDateString('es-CO') : 'S/F';
+            // Limpieza de fecha (quitar la hora 12:00:00 AM)
+            const soloFecha = m.fecha.split(' ')[0]; 
+            const fechaPartes = soloFecha.split('/'); // Asumiendo formato M/D/YYYY o D/M/YYYY
+            // Creamos la fecha localmente para evitar desfases
+            const fechaMostrar = soloFecha; 
 
-            // 3. CONSTRUIR FILA DE LA TABLA
-            // Importante: data-lote y data-tipo deben coincidir con tus filtros
             tabla.innerHTML += `
                 <tr onclick="toggleDetalle(${index})" 
-                    data-lote="${m.lote_id}" 
+                    data-lote="${loteAsignado}" 
                     data-tipo="${m.tipo}" 
                     data-monto="${monto}" 
-                    data-kilos="${kilos}"
-                    class="cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-100">
+                    class="cursor-pointer hover:bg-slate-50 border-b border-slate-100">
                     <td class="px-8 py-4">
-                        <p class="font-bold text-slate-700">${fechaLabel}</p>
-                        <p class="text-[10px] text-slate-400 uppercase font-black">Lote ${m.lote_id || ''}</p>
+                        <p class="font-bold text-slate-700">${fechaMostrar}</p>
+                        <p class="text-[10px] text-slate-400 uppercase font-black">Lote ${loteAsignado}</p>
                     </td>
                     <td class="px-8 py-4">
                         <span class="${esVenta ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} px-2 py-0.5 rounded-full text-[9px] font-black uppercase mr-2">
                             ${m.tipo.replace('_', ' ')}
                         </span>
-                        <span class="text-slate-600 font-medium">${m.descripcion || m.nota || ''}</span>
+                        <span class="text-slate-600 font-medium">${m.descripcion || 'Sin descripción'}</span>
                     </td>
                     <td class="px-8 py-4 text-right font-black ${esVenta ? 'text-green-600' : 'text-red-600'}">
-                        ${esVenta ? '+' : '-'} ${formatMoney(monto)}
+                        ${esVenta ? '+' : '-'} $${monto.toLocaleString()}
                     </td>
                 </tr>
                 <tr id="detalle-${index}" class="hidden bg-slate-50">
-                    <td colspan="3" class="px-8 py-2 border-b border-slate-100 text-center">
-                        <div class="flex justify-around items-center">
-                            ${kilos > 0 ? `<span class="text-xs font-bold text-slate-500 underline">Cantidad: ${kilos} Kg</span>` : ''}
-                            <button onclick="eliminarMovimiento(${m.id})" class="text-red-500 text-[10px] font-black uppercase tracking-widest hover:text-red-700">
-                                [ ELIMINAR REGISTRO ]
-                            </button>
+                    <td colspan="3" class="px-8 py-4 text-center">
+                        <div class="flex justify-around">
+                            <span class="text-sm"><b>Kilos:</b> ${kilos} Kg</span>
+                            <button onclick="eliminarMovimiento(${m.id})" class="text-red-500 font-bold">[ ELIMINAR ]</button>
                         </div>
                     </td>
                 </tr>`;
         });
 
-        // 4. ACTUALIZAR DASHBOARD DIRECTAMENTE
-        document.getElementById('dash-gastos').innerText = formatMoney(totalGastos);
-        document.getElementById('dash-ventas').innerText = formatMoney(totalVentas);
+        // Actualizar Dashboard
+        document.getElementById('dash-gastos').innerText = `$ ${totalGastos.toLocaleString()}`;
+        document.getElementById('dash-ventas').innerText = `$ ${totalVentas.toLocaleString()}`;
         document.getElementById('dash-kilos').innerText = `${totalKilos.toLocaleString()} Kg`;
-        document.getElementById('dash-utilidad').innerText = formatMoney(totalVentas - totalGastos);
+        document.getElementById('dash-utilidad').innerText = `$ ${(totalVentas - totalGastos).toLocaleString()}`;
 
-        // 5. EJECUTAR FILTRO (Por si hay algo escrito en el buscador)
-        filtrarTabla(); 
+        // Forzar que el filtro se ejecute para mostrar todo lo "Lote 3"
+        filtrarTabla();
 
     } catch (err) {
-        console.error("Error cargando historial:", err);
+        console.error("Error:", err);
     }
 }
 // 5. REGISTRAR MOVIMIENTO
