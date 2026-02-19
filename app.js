@@ -61,16 +61,19 @@ app.post('/api/login', (req, res) => {
 // 1. GUARDAR MOVIMIENTO
 // CORRECCIÓN EN EL SERVIDOR (app.js)
 app.post('/api/movimientos', async (req, res) => {
-    const { fecha, lote, monto, kilos, tipo, nota } = req.body;
+    // CAMBIO AQUÍ: Cambiamos 'nota' por 'descripcion' para que coincida con el frontend
+    const { fecha, lote, monto, kilos, tipo, descripcion } = req.body; 
+    
     try {
         let pool = await connectDB();
         await pool.request()
             .input('fecha', fecha)
-            .input('lote_id', lote) // Cambiamos lote por lote_id
+            .input('lote_id', lote) 
             .input('monto', monto)
             .input('kilos', kilos)
             .input('tipo', tipo)
-            .input('descripcion', nota) // Cambiamos nota por descripcion
+            // CAMBIO AQUÍ: Usamos la variable 'descripcion' que ahora sí tiene datos
+            .input('descripcion', descripcion) 
             .query(`INSERT INTO movimientos (fecha, lote_id, monto, kilos, tipo, descripcion) 
                     VALUES (@fecha, @lote_id, @monto, @kilos, @tipo, @descripcion)`);
         
