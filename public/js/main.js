@@ -482,13 +482,15 @@ function limpiarFiltros() {
     // 1. Limpiar los elementos del DOM (Incluyendo la nueva Cosecha)
     const inputBusqueda = document.getElementById('filter-busqueda');
     const selectTipo = document.getElementById('filter-tipo');
-    const selectCosecha = document.getElementById('filter-cosecha'); // Nuevo
-    const inputFecha = document.getElementById('filter-fecha');
+    const selectCosecha = document.getElementById('filter-cosecha');
+    const inputFechaDesde = document.getElementById('filter-fecha-desde');
+    const inputFechaHasta = document.getElementById('filter-fecha-hasta');
 
     if (inputBusqueda) inputBusqueda.value = "";
     if (selectTipo) selectTipo.value = "";
-    if (selectCosecha) selectCosecha.value = ""; // Nuevo
-    if (inputFecha) inputFecha.value = "";
+    if (selectCosecha) selectCosecha.value = "";
+    if (inputFechaDesde) inputFechaDesde.value = "";
+    if (inputFechaHasta) inputFechaHasta.value = "";
 
     // 2. Ejecutar la función de filtrado para mostrar todo de nuevo
     if (typeof filtrarTabla === "function") {
@@ -624,5 +626,32 @@ function toggleHistorial() {
     } else {
         contenido.style.display = 'none';
         icono.classList.remove('rotate-180');
+    }
+}
+// ELIMINAR MOVIMIENTO
+async function eliminarMovimiento(id) {
+    const result = await Swal.fire({
+        title: '¿Eliminar movimiento?',
+        text: "Esta acción no se puede deshacer.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const res = await fetch(`/api/historial/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                Swal.fire('Eliminado', 'El movimiento ha sido eliminado.', 'success');
+                actualizarTodo();
+            } else {
+                Swal.fire('Error', 'No se pudo eliminar del servidor.', 'error');
+            }
+        } catch (err) {
+            Swal.fire('Error', 'Fallo de conexión.', 'error');
+        }
     }
 }
