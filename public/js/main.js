@@ -25,7 +25,7 @@ async function actualizarTodo() {
     await cargarTrabajadores();
 }
 
-// 3. CARGAR DASHBOARD (GASTOS, VENTAS, UTILIDAD)
+// 3. CARGAR DASHBOARD (GASTOS, VENTAS, UTILIDAD Y KILOS)
 async function cargarResumen() {
     try {
         const res = await fetch('/api/resumen');
@@ -33,21 +33,30 @@ async function cargarResumen() {
         
         const inversion = data.inversion || 0;
         const ventas = data.ventas || 0;
-        const kilos = data.totalKilos || 0; // Capturamos los kilos
+        const kilos = data.totalKilos || 0;
         const utilidad = ventas - inversion;
 
-        document.getElementById('dash-gastos').innerText = formatMoney(inversion);
-        document.getElementById('dash-ventas').innerText = formatMoney(ventas);
+        // Actualizar Inversión
+        const gasElement = document.getElementById('dash-gastos');
+        if (gasElement) gasElement.innerText = formatMoney(inversion);
         
-        // ACTUALIZAMOS EL CUADRO DE KILOS
-        document.getElementById('dash-kilos').innerText = `${kilos.toLocaleString()} Kg`;
+        // Actualizar Ventas
+        const venElement = document.getElementById('dash-ventas');
+        if (venElement) venElement.innerText = formatMoney(ventas);
         
+        // Actualizar KILOS - Esta es la parte importante para el usuario
+        const kiloElement = document.getElementById('dash-kilos');
+        if (kiloElement) kiloElement.innerText = `${Number(kilos).toLocaleString()} Kg`;
+        
+        // Actualizar Utilidad
         const utilElement = document.getElementById('dash-utilidad');
-        utilElement.innerText = formatMoney(utilidad);
-        utilElement.style.color = utilidad < 0 ? '#ff9999' : '#ffffff';
+        if (utilElement) {
+            utilElement.innerText = formatMoney(utilidad);
+            utilElement.style.color = utilidad < 0 ? '#ff9999' : '#ffffff';
+        }
 
         // Sincronizar con filtros si ya hay uno seleccionado
-        if (document.getElementById('filter-cosecha').value !== "") {
+        if (document.getElementById('filter-cosecha')?.value !== "") {
             filtrarTabla();
         }
 
@@ -101,10 +110,11 @@ async function cargarHistorial() {
             const descSegura = (m.descripcion || 'Sin descripción').replace(/'/g, "\\'");
 
             tabla.innerHTML += `
-                <tr onclick="toggleDetalle(${index})" ... 
+                <tr onclick="toggleDetalle(${index})" 
                     data-lote="${loteAsignado}" 
                     data-tipo="${m.tipo}" 
                     data-monto="${monto}" 
+                    data-kilos="${kilos}"
                     class="cursor-pointer hover:bg-slate-50 border-b border-slate-100">
                     <td class="px-8 py-4">
                         <p class="font-bold text-slate-700">${fechaMostrar}</p>
