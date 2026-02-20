@@ -114,7 +114,8 @@ async function cargarHistorial() {
                     data-lote="${loteAsignado}" 
                     data-tipo="${m.tipo}" 
                     data-monto="${monto}" 
-                    data-kilos="${kilos}"
+data-kilos="${kilos}"
+                    data-fecha="${soloFecha}"
                     class="cursor-pointer hover:bg-slate-50 border-b border-slate-100">
                     <td class="px-8 py-4">
                         <p class="font-bold text-slate-700">${fechaMostrar}</p>
