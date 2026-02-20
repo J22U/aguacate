@@ -20,11 +20,11 @@
                     }
                 };
             }
-            // Forzamos limpieza de filtros al recargar para mostrar TODO
             if(document.getElementById('filter-busqueda')) document.getElementById('filter-busqueda').value = '';
             if(document.getElementById('filter-cosecha')) document.getElementById('filter-cosecha').value = '';
             if(document.getElementById('filter-tipo')) document.getElementById('filter-tipo').value = '';
-            if(document.getElementById('filter-fecha')) document.getElementById('filter-fecha').value = ''; 
+            if(document.getElementById('filter-fecha-desde')) document.getElementById('filter-fecha-desde').value = '';
+            if(document.getElementById('filter-fecha-hasta')) document.getElementById('filter-fecha-hasta').value = '';
             
             if (typeof actualizarTodo === 'function') actualizarTodo();
         }
@@ -118,7 +118,7 @@
                     <div class="mt-6 border-t pt-4">
                         <h3 class="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest">Personal Registrado</h3>
                         <div id="lista-trabajadores" class="space-y-2 max-h-40 overflow-y-auto custom-scroll">
-                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -171,8 +171,12 @@
                         </select>
                     </div>
                     <div>
-                        <label class="text-[10px] font-black uppercase text-slate-400">Fecha</label>
-                        <input type="date" id="filter-fecha" onchange="filtrarTabla()" class="w-full p-3 bg-slate-50 border rounded-xl text-sm">
+                        <label class="text-[10px] font-black uppercase text-slate-400">Desde</label>
+                        <input type="date" id="filter-fecha-desde" onchange="filtrarTabla()" class="w-full p-3 bg-slate-50 border rounded-xl text-sm">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-slate-400">Hasta</label>
+                        <input type="date" id="filter-fecha-hasta" onchange="filtrarTabla()" class="w-full p-3 bg-slate-50 border rounded-xl text-sm">
                     </div>
                     <button onclick="limpiarFiltros()" class="mt-5 p-3 text-slate-400 hover:text-red-500"><i class="fa-solid fa-eraser"></i></button>
                 </div>

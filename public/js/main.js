@@ -437,7 +437,20 @@ function filtrarTabla() {
         const coincideCosecha = cosecha === "" || fLote === cosecha;
         const coincideTipo = tipo === "" || fTipo === tipo;
 
-        if (coincideBusqueda && coincideCosecha && coincideTipo) {
+        const fechaDesde = document.getElementById('filter-fecha-desde')?.value || "";
+        const fechaHasta = document.getElementById('filter-fecha-hasta')?.value || "";
+        const fFecha = fila.getAttribute('data-fecha') || "";
+        
+        let coincideFecha = true;
+        if (fechaDesde && fechaHasta) {
+            coincideFecha = fFecha >= fechaDesde && fFecha <= fechaHasta;
+        } else if (fechaDesde) {
+            coincideFecha = fFecha >= fechaDesde;
+        } else if (fechaHasta) {
+            coincideFecha = fFecha <= fechaHasta;
+        }
+
+        if (coincideBusqueda && coincideCosecha && coincideTipo && coincideFecha) {
             fila.style.display = '';
             if (fTipo === 'venta') {
                 sumVentas += fMonto;
